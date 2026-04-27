@@ -7,16 +7,25 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--border:#333;--gold:#c9a84c;--green:#50c878;--red:#ff6b6b;--amber:#e08c30;--white:#fff;--off:#ddd;--sub:#aaa;--mono:'Courier New',monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 14px 80px}
-header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 80px}
+
+/* ── NAV TABS ── */
+.tab-bar{width:100%;max-width:480px;display:flex;border-bottom:1px solid var(--border);margin-bottom:0;position:sticky;top:0;background:var(--bg);z-index:50}
+.tab{flex:1;padding:14px 0;font-family:var(--mono);font-size:12px;font-weight:bold;letter-spacing:.12em;color:var(--sub);text-transform:uppercase;text-align:center;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-content{display:none;width:100%;max-width:480px;padding:20px 14px 0}
+.tab-content.active{display:block}
+
+/* ── HEADER ── */
+.app-header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;padding:18px 14px 14px;border-bottom:1px solid var(--border)}
 .logo{font-family:var(--mono);font-size:11px;font-weight:bold;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
 .header-right{display:flex;align-items:center;gap:12px}
 .date-lbl{font-family:var(--mono);font-size:12px;color:var(--off)}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--sub);flex-shrink:0;transition:background .3s}
-.sync-dot.ok{background:var(--green)}
-.sync-dot.err{background:var(--red)}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
+.sync-dot.ok{background:var(--green)}.sync-dot.err{background:var(--red)}.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── COMMON ── */
 .lbl{font-family:var(--mono);font-size:11px;font-weight:bold;letter-spacing:.2em;color:var(--sub);text-transform:uppercase;margin-bottom:9px}
 .heading{font-size:17px;font-weight:700;color:var(--white);margin-bottom:11px}
 .inp-wrap{position:relative;flex:1}
@@ -29,9 +38,11 @@ input:focus{border-color:var(--gold)}
 .btn:active{transform:scale(.96);opacity:.85}
 .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--off);padding:10px 14px;font-size:12px}
 .btn.ghost:active{background:var(--card2);color:var(--white)}
-#cap-setup{width:100%;max-width:480px;margin-bottom:24px}
+
+/* ── TODAY TAB ── */
+#cap-setup{margin-bottom:24px}
 .cap-row{display:flex;gap:10px;align-items:stretch}
-#gauge-section{width:100%;max-width:480px;margin-bottom:20px;display:none}
+#gauge-section{margin-bottom:20px;display:none}
 .gauge-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 18px 16px}
 .gauge-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
 .rem-lbl{font-family:var(--mono);font-size:11px;font-weight:bold;letter-spacing:.2em;color:var(--sub);text-transform:uppercase;margin-bottom:6px}
@@ -51,18 +62,18 @@ input:focus{border-color:var(--gold)}
 .progress-track{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:9px}
 .progress-fill{height:100%;border-radius:3px;width:0%;background:var(--green);transition:width .45s cubic-bezier(.4,0,.2,1),background .3s}
 .progress-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--off)}
-#done-banner{display:none;background:#200a0a;border:1px solid var(--red);border-radius:12px;padding:18px;text-align:center;margin-bottom:18px;width:100%;max-width:480px}
+#done-banner{display:none;background:#200a0a;border:1px solid var(--red);border-radius:12px;padding:18px;text-align:center;margin-bottom:18px}
 .done-icon{font-size:28px;margin-bottom:6px}
 .done-title{font-family:var(--mono);font-size:14px;font-weight:bold;color:var(--red);letter-spacing:.1em;margin-bottom:5px}
 .done-sub{font-family:var(--mono);font-size:12px;color:var(--off)}
-#receipt-section{width:100%;max-width:480px;margin-bottom:22px;display:none}
+#receipt-section{margin-bottom:22px;display:none}
 .receipt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:9px}
 .receipt-inputs{display:flex;gap:9px;align-items:center}
 .receipt-inputs input[type=text]{font-size:15px;padding:13px 12px;flex:1;min-width:0}
 .amt-wrap{position:relative;width:110px;flex-shrink:0}
 .amt-wrap .sym{font-size:15px;left:11px}
 .amt-wrap input{font-size:15px;padding:13px 9px 13px 28px}
-#log-section{width:100%;max-width:480px;display:none}
+#log-section{display:none}
 .log-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
 .receipt-list{display:flex;flex-direction:column;gap:7px}
 .receipt-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px;display:flex;align-items:center;gap:9px;animation:fadeIn .18s ease}
@@ -73,30 +84,58 @@ input:focus{border-color:var(--gold)}
 .ri-del{background:none;border:none;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:2px 5px;-webkit-appearance:none}
 .ri-del:active{color:var(--red)}
 .empty-state{text-align:center;padding:24px;font-family:var(--mono);font-size:13px;color:var(--sub);letter-spacing:.08em}
-.divider{width:100%;max-width:480px;height:1px;background:var(--border);margin:0 0 20px;display:none}
-.sec-divider{width:100%;height:1px;background:var(--border);margin:30px 0 20px}
-#history-section{width:100%;max-width:480px;display:none}
+
+/* ── HISTORY TAB ── */
 .cum-banner{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:17px 19px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
 .cum-lbl{font-family:var(--mono);font-size:10px;font-weight:bold;letter-spacing:.18em;color:var(--sub);text-transform:uppercase;margin-bottom:5px}
 .cum-val{font-family:var(--mono);font-size:28px;font-weight:bold}
 .cum-right{text-align:right}
 .cum-days{font-family:var(--mono);font-size:12px;color:var(--off);margin-bottom:3px}
 .cum-avg{font-family:var(--mono);font-size:13px}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px}
 .stat-lbl{font-family:var(--mono);font-size:10px;font-weight:bold;letter-spacing:.15em;color:var(--sub);text-transform:uppercase;margin-bottom:7px}
 .stat-val{font-family:var(--mono);font-size:22px;font-weight:bold}
 .stat-sub{font-family:var(--mono);font-size:11px;color:var(--off);margin-top:3px}
-.hist-list{display:flex;flex-direction:column;gap:7px}
-.hist-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-.hr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.hr-date{font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--white)}
-.hr-delta{font-family:var(--mono);font-size:14px;font-weight:bold}
-.hr-bar-track{height:3px;background:var(--card2);border-radius:2px;overflow:hidden}
-.hr-bar-fill{height:100%;border-radius:2px}
-.hr-bot{display:flex;justify-content:space-between;margin-top:5px;font-family:var(--mono);font-size:11px;color:var(--off)}
-.hr-cum{font-family:var(--mono);font-size:11px;font-weight:bold}
+
+/* ── CALENDAR ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-family:var(--mono);font-size:14px;font-weight:bold;color:var(--white);letter-spacing:.1em}
+.cal-arrow{background:none;border:1px solid var(--border);border-radius:6px;color:var(--off);font-size:16px;padding:6px 12px;cursor:pointer;-webkit-appearance:none}
+.cal-arrow:active{background:var(--card2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-dow{font-family:var(--mono);font-size:10px;color:var(--sub);text-align:center;padding:4px 0;letter-spacing:.05em}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;position:relative;border:1px solid transparent;transition:border-color .15s}
+.cal-day.empty{cursor:default}
+.cal-day.today{border-color:var(--gold)}
+.cal-day.selected{background:var(--gold);border-color:var(--gold)}
+.cal-day.has-data:not(.selected){background:var(--card)}
+.cal-day.has-data:not(.selected):active{background:var(--card2)}
+.cal-day-num{font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--white)}
+.cal-day.selected .cal-day-num{color:#000}
+.cal-day.today:not(.selected) .cal-day-num{color:var(--gold)}
+.cal-day.empty .cal-day-num{color:#333}
+.cal-pip{width:5px;height:5px;border-radius:50%;margin-top:2px}
+.cal-day.selected .cal-pip{background:#000}
+
+/* ── DAY DETAIL ── */
+.day-detail{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;animation:fadeIn .2s ease}
+.dd-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.dd-date{font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--white)}
+.dd-delta{font-family:var(--mono);font-size:20px;font-weight:bold}
+.dd-meta{font-family:var(--mono);font-size:11px;color:var(--off);margin-bottom:12px}
+.dd-receipts{display:flex;flex-direction:column;gap:6px}
+.dd-receipt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--card2);border-radius:8px}
+.dd-desc{font-size:13px;color:var(--white);flex:1}
+.dd-time{font-family:var(--mono);font-size:10px;color:var(--sub);margin:0 10px}
+.dd-amt{font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--red)}
+.dd-empty{font-family:var(--mono);font-size:12px;color:var(--sub);text-align:center;padding:16px}
+.dd-bar-track{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.dd-bar-fill{height:100%;border-radius:3px}
+
 .c-g{color:var(--green)}.c-r{color:var(--red)}.c-a{color:var(--amber)}
+
+/* ── LOADING ── */
 .loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
 .loading-overlay.hidden{display:none}
 .loading-logo{font-family:var(--mono);font-size:12px;font-weight:bold;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
@@ -113,382 +152,294 @@ input:focus{border-color:var(--gold)}
   <div class="loading-msg" id="loading-msg">Connecting...</div>
 </div>
 
-<header>
+<div class="app-header">
   <span class="logo">Peak Finance HQ</span>
   <div class="header-right">
     <span class="date-lbl" id="date-lbl"></span>
-    <div class="sync-dot" id="sync-dot" title="Sync status"></div>
-  </div>
-</header>
-
-<div id="cap-setup">
-  <div class="lbl">Daily Spend Cap</div>
-  <div class="cap-row">
-    <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
-    <button class="btn" onclick="setCap()">SET CAP</button>
+    <div class="sync-dot" id="sync-dot"></div>
   </div>
 </div>
 
-<div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('today')">Today</button>
+  <button class="tab" onclick="switchTab('history')">History</button>
+  <button class="tab" onclick="switchTab('calendar')">Calendar</button>
+</div>
 
-<div id="gauge-section">
-  <div class="gauge-card">
-    <div class="gauge-top">
-      <div><div class="rem-lbl">Remaining Today</div><div class="rem-amt c-g" id="rem-amt">$0.00</div></div>
-      <div class="cap-info">
-        <div class="cap-info-lbl">Daily Cap</div>
-        <span class="cap-static" id="cap-static" onclick="startCapEdit()">$0.00</span>
-        <div class="cap-hint" id="cap-hint">Tap to edit</div>
-        <div class="cap-edit-row" id="cap-edit-row">
-          <div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
-          <button class="cap-ok" onclick="confirmCapEdit()">OK</button>
-          <button class="cap-x" onclick="cancelCapEdit()">✕</button>
+<!-- ── TODAY ── -->
+<div class="tab-content active" id="tab-today">
+  <div id="cap-setup">
+    <div class="lbl">Daily Spend Cap</div>
+    <div class="cap-row">
+      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+      <button class="btn" onclick="setCap()">SET CAP</button>
+    </div>
+  </div>
+  <div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
+  <div id="gauge-section">
+    <div class="gauge-card">
+      <div class="gauge-top">
+        <div><div class="rem-lbl">Remaining Today</div><div class="rem-amt c-g" id="rem-amt">$0.00</div></div>
+        <div class="cap-info">
+          <div class="cap-info-lbl">Daily Cap</div>
+          <span class="cap-static" id="cap-static" onclick="startCapEdit()">$0.00</span>
+          <div class="cap-hint" id="cap-hint">Tap to edit</div>
+          <div class="cap-edit-row" id="cap-edit-row">
+            <div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
+            <button class="cap-ok" onclick="confirmCapEdit()">OK</button>
+            <button class="cap-x" onclick="cancelCapEdit()">✕</button>
+          </div>
         </div>
       </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
+      <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
     </div>
-    <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
-    <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
+  </div>
+  <div id="receipt-section">
+    <div class="lbl">Add Receipt</div>
+    <div class="receipt-card">
+      <div class="receipt-inputs">
+        <input type="text" id="r-desc" placeholder="What was it?" maxlength="50">
+        <div class="amt-wrap"><span class="sym">$</span><input type="number" id="r-amt" placeholder="0.00" min="0.01" step="0.01" inputmode="decimal"></div>
+      </div>
+      <button class="btn" onclick="addReceipt()" style="width:100%;padding:14px;font-size:14px">ADD RECEIPT</button>
+    </div>
+  </div>
+  <div id="log-section">
+    <div class="log-hdr"><div class="lbl" style="margin:0">Today's Receipts</div><button class="btn ghost" onclick="clearToday()">CLEAR ALL</button></div>
+    <div class="receipt-list" id="receipt-list"></div>
   </div>
 </div>
 
-<div id="receipt-section">
-  <div class="lbl">Add Receipt</div>
-  <div class="receipt-card">
-    <div class="receipt-inputs">
-      <input type="text" id="r-desc" placeholder="What was it?" maxlength="50">
-      <div class="amt-wrap"><span class="sym">$</span><input type="number" id="r-amt" placeholder="0.00" min="0.01" step="0.01" inputmode="decimal"></div>
-    </div>
-    <button class="btn" onclick="addReceipt()" style="width:100%;padding:14px;font-size:14px">ADD RECEIPT</button>
-  </div>
-</div>
-
-<div class="divider" id="log-divider"></div>
-
-<div id="log-section">
-  <div class="log-hdr"><div class="lbl" style="margin:0">Today's Receipts</div><button class="btn ghost" onclick="clearToday()">CLEAR ALL</button></div>
-  <div class="receipt-list" id="receipt-list"></div>
-</div>
-
-<div id="history-section">
-  <div class="sec-divider"></div>
-  <div class="log-hdr" style="margin-bottom:14px"><div class="heading" style="margin:0">Spend History</div></div>
+<!-- ── HISTORY ── -->
+<div class="tab-content" id="tab-history">
   <div class="cum-banner"><div><div class="cum-lbl">Running Total</div><div class="cum-val" id="cum-val">+$0.00</div></div><div class="cum-right"><div class="cum-days" id="cum-days">0 days tracked</div><div class="cum-avg" id="cum-avg"></div></div></div>
   <div class="stats-grid" id="stats-grid"></div>
-  <div class="hist-list" id="hist-list"></div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- ── CALENDAR ── -->
+<div class="tab-content" id="tab-calendar">
+  <div class="cal-nav">
+    <button class="cal-arrow" onclick="calPrev()">‹</button>
+    <span class="cal-month" id="cal-month"></span>
+    <button class="cal-arrow" onclick="calNext()">›</button>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div id="day-detail"></div>
 </div>
 
 <script>
-var SUPA_URL = 'https://fnkwmbvdinextbfvyzoe.supabase.co';
-var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZua3dtYnZkaW5leHRiZnZ5em9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDMzNDgsImV4cCI6MjA5MjgxOTM0OH0.qFbl_zp_Uf700yyAVVV-xqLSafMfReFhHT54tnuMrQo';
+var SUPA_URL='https://fnkwmbvdinextbfvyzoe.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZua3dtYnZkaW5leHRiZnZ5em9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDMzNDgsImV4cCI6MjA5MjgxOTM0OH0.qFbl_zp_Uf700yyAVVV-xqLSafMfReFhHT54tnuMrQo';
 
-var TODAY = new Date().toDateString();
-var todayCap = null;
-var todayReceipts = [];
-var allDays = [];
+var TODAY=new Date().toDateString();
+var todayCap=null, todayReceipts=[], allDays=[];
+var calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+var selectedDate=null;
 
-document.getElementById('date-lbl').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 
 // ── API ──
-function api(method, path, body) {
-  var opts = {
-    method: method,
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : ''
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  return fetch(SUPA_URL + '/rest/v1/' + path, opts).then(function(r) {
-    if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
-    return r.status === 204 ? null : r.json();
+function api(method,path,body){
+  var opts={method:method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''}};
+  if(body) opts.body=JSON.stringify(body);
+  return fetch(SUPA_URL+'/rest/v1/'+path,opts).then(function(r){
+    if(!r.ok) return r.text().then(function(t){throw new Error(t);});
+    return r.status===204?null:r.json();
   });
 }
 
-// ── SYNC DOT ──
-function setSyncStatus(s) {
-  var dot = document.getElementById('sync-dot');
-  dot.className = 'sync-dot ' + s;
-}
+function setSyncStatus(s){document.getElementById('sync-dot').className='sync-dot '+s;}
+
+// ── TABS ──
+window.switchTab=function(name){
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['today','history','calendar'][i]===name);});
+  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='calendar') renderCalendar();
+  if(name==='history') renderHistory();
+};
 
 // ── LOAD ──
-function loadAll() {
+function loadAll(){
   setSyncStatus('syncing');
-  document.getElementById('loading-msg').textContent = 'Loading data...';
-  return api('GET', 'receipts?order=created_at.asc&select=*').then(function(rows) {
-    // Group by date
-    var byDate = {};
-    (rows || []).forEach(function(r) {
-      if (!byDate[r.date]) byDate[r.date] = { date: r.date, cap: r.cap, receipts: [] };
-      byDate[r.date].cap = r.cap; // last cap wins
-      if (r.amount > 0) {
-        byDate[r.date].receipts.push({ id: r.id, desc: r.description, amount: r.amount, time: new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) });
-      }
+  document.getElementById('loading-msg').textContent='Loading data...';
+  return api('GET','receipts?order=created_at.asc&select=*').then(function(rows){
+    var byDate={};
+    (rows||[]).forEach(function(r){
+      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:r.cap,receipts:[]};
+      byDate[r.date].cap=r.cap;
+      if(r.amount>0) byDate[r.date].receipts.push({id:r.id,desc:r.description,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
     });
-
-    allDays = Object.values(byDate);
-    allDays.sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
-
-    var todayEntry = byDate[TODAY];
-    if (todayEntry) {
-      todayCap = todayEntry.cap;
-      todayReceipts = todayEntry.receipts;
-    } else {
-      todayCap = null;
-      todayReceipts = [];
-    }
-
+    allDays=Object.values(byDate).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    var td=byDate[TODAY];
+    todayCap=td?td.cap:null;
+    todayReceipts=td?td.receipts:[];
     setSyncStatus('ok');
     document.getElementById('loading').classList.add('hidden');
     render();
-  }).catch(function(e) {
-    setSyncStatus('err');
-    document.getElementById('loading-msg').textContent = 'Connection error — check internet';
-    console.error(e);
-  });
+  }).catch(function(e){setSyncStatus('err');document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
 }
 
 // ── HELPERS ──
-function fmt(n, sign) {
-  var abs = Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  if (sign) return (n >= 0 ? '+' : '-') + '$' + abs;
-  return '$' + abs;
-}
-function show(id, v) { document.getElementById(id).style.display = v ? 'block' : 'none'; }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function totalSpent() { return todayReceipts.reduce(function(t,r){ return t+r.amount; }, 0); }
+function fmt(n,sign){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
+function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
+function getDayData(dateStr){return allDays.find(function(d){return d.date===dateStr;});}
 
-// ── RENDER ──
-function render() {
-  var has = todayCap !== null;
-  show('cap-setup', !has);
-  show('gauge-section', has);
-  show('receipt-section', has);
-  show('log-section', has);
-  show('log-divider', has);
-
-  if (has) {
-    var s = totalSpent(), rem = Math.max(todayCap - s, 0);
-    var pct = todayCap > 0 ? Math.min(s / todayCap * 100, 100) : 0;
-    var done = rem <= 0;
-    var ra = document.getElementById('rem-amt');
-    ra.textContent = fmt(rem);
-    ra.className = 'rem-amt ' + (pct < 60 ? 'c-g' : pct < 85 ? 'c-a' : 'c-r');
-    document.getElementById('cap-static').textContent = fmt(todayCap);
-    document.getElementById('spent-lbl').textContent = fmt(s) + ' spent';
-    document.getElementById('cap-end-lbl').textContent = fmt(todayCap);
-    var bar = document.getElementById('prog-bar');
-    bar.style.width = pct + '%';
-    bar.style.background = pct < 60 ? 'var(--green)' : pct < 85 ? 'var(--amber)' : 'var(--red)';
-    show('done-banner', done);
-    var rs = document.getElementById('receipt-section');
-    rs.style.opacity = done ? '0.3' : '1';
-    rs.style.pointerEvents = done ? 'none' : '';
+// ── RENDER TODAY ──
+function render(){
+  var has=todayCap!==null;
+  show('cap-setup',!has); show('gauge-section',has); show('receipt-section',has); show('log-section',has);
+  if(has){
+    var s=totalSpent(),rem=Math.max(todayCap-s,0),pct=todayCap>0?Math.min(s/todayCap*100,100):0,done=rem<=0;
+    var ra=document.getElementById('rem-amt');
+    ra.textContent=fmt(rem); ra.className='rem-amt '+(pct<60?'c-g':pct<85?'c-a':'c-r');
+    document.getElementById('cap-static').textContent=fmt(todayCap);
+    document.getElementById('spent-lbl').textContent=fmt(s)+' spent';
+    document.getElementById('cap-end-lbl').textContent=fmt(todayCap);
+    var bar=document.getElementById('prog-bar');
+    bar.style.width=pct+'%'; bar.style.background=pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
+    show('done-banner',done);
+    var rs=document.getElementById('receipt-section'); rs.style.opacity=done?'0.3':'1'; rs.style.pointerEvents=done?'none':'';
     renderReceipts();
   }
-  renderHistory();
 }
 
-function renderReceipts() {
-  var list = document.getElementById('receipt-list');
-  if (todayReceipts.length === 0) { list.innerHTML = '<div class="empty-state">NO RECEIPTS YET</div>'; return; }
-  list.innerHTML = '';
-  var rev = todayReceipts.slice().reverse();
-  for (var i = 0; i < rev.length; i++) {
-    var r = rev[i];
-    var d = document.createElement('div');
-    d.className = 'receipt-item';
-    d.innerHTML = '<span class="ri-desc">' + esc(r.desc || '\u2014') + '</span>' +
-      '<span class="ri-time">' + esc(r.time) + '</span>' +
-      '<span class="ri-amt">\u2212' + fmt(r.amount) + '</span>' +
-      '<button class="ri-del" data-id="' + r.id + '">\u00d7</button>';
+function renderReceipts(){
+  var list=document.getElementById('receipt-list');
+  if(todayReceipts.length===0){list.innerHTML='<div class="empty-state">NO RECEIPTS YET</div>';return;}
+  list.innerHTML='';
+  var rev=todayReceipts.slice().reverse();
+  for(var i=0;i<rev.length;i++){
+    var r=rev[i],d=document.createElement('div');
+    d.className='receipt-item';
+    d.innerHTML='<span class="ri-desc">'+esc(r.desc||'\u2014')+'</span><span class="ri-time">'+esc(r.time)+'</span><span class="ri-amt">\u2212'+fmt(r.amount)+'</span><button class="ri-del" data-id="'+r.id+'">\u00d7</button>';
     list.appendChild(d);
   }
-  list.querySelectorAll('.ri-del').forEach(function(btn) {
-    btn.addEventListener('click', function() { deleteReceipt(this.getAttribute('data-id')); });
-  });
+  list.querySelectorAll('.ri-del').forEach(function(btn){btn.addEventListener('click',function(){deleteReceipt(this.getAttribute('data-id'));});});
 }
 
-function renderHistory() {
-  var past = allDays.filter(function(d){ return d.date !== TODAY; });
-  var all = allDays;
-  show('history-section', all.length > 0);
-  if (all.length === 0) return;
-
-  // compute day deltas
-  var daysWithDelta = all.map(function(d) {
-    var s = d.receipts.reduce(function(t,r){ return t+r.amount; }, 0);
-    return { date: d.date, cap: d.cap, spent: s, delta: d.cap - s };
-  });
-
-  var cum = daysWithDelta.reduce(function(t,d){ return t+d.delta; }, 0);
-  var cv = document.getElementById('cum-val');
-  cv.textContent = fmt(cum, true);
-  cv.className = 'cum-val ' + (cum >= 0 ? 'c-g' : 'c-r');
-  document.getElementById('cum-days').textContent = all.length + ' day' + (all.length !== 1 ? 's' : '') + ' tracked';
-  var avg = cum / all.length;
-  var ae = document.getElementById('cum-avg');
-  ae.textContent = fmt(avg, true) + '/day avg';
-  ae.className = avg >= 0 ? 'c-g' : 'c-r';
-
-  renderStats(daysWithDelta);
-
-  var hl = document.getElementById('hist-list');
-  hl.innerHTML = '';
-  var pastWithDelta = daysWithDelta.filter(function(d){ return d.date !== TODAY; });
-  if (pastWithDelta.length === 0) { hl.innerHTML = '<div class="empty-state">NO PAST DAYS YET</div>'; return; }
-
-  var asc = daysWithDelta.slice().sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
-  var runMap = {}, run = 0;
-  asc.forEach(function(d){ run += d.delta; runMap[d.date] = run; });
-
-  for (var i = 0; i < pastWithDelta.length; i++) {
-    var d = pastWithDelta[i];
-    var pct = d.cap > 0 ? Math.min(d.spent / d.cap * 100, 100) : 0;
-    var bc = pct <= 100 ? 'var(--green)' : 'var(--red)';
-    var rc = runMap[d.date];
-    var de = document.createElement('div');
-    de.className = 'hist-row';
-    de.innerHTML = '<div class="hr-top"><span class="hr-date">' + fmtDate(d.date) + '</span><span class="hr-delta ' + (d.delta >= 0 ? 'c-g' : 'c-r') + '">' + fmt(d.delta, true) + '</span></div>' +
-      '<div class="hr-bar-track"><div class="hr-bar-fill" style="width:' + Math.min(pct,100) + '%;background:' + bc + '"></div></div>' +
-      '<div class="hr-bot"><span>' + fmt(d.spent) + ' of ' + fmt(d.cap) + ' cap</span><span class="hr-cum ' + (rc >= 0 ? 'c-g' : 'c-r') + '">running: ' + fmt(rc, true) + '</span></div>';
+// ── RENDER HISTORY ──
+function renderHistory(){
+  if(!allDays.length){document.getElementById('tab-history').innerHTML='<div class="empty-state" style="padding:40px">No history yet — start tracking!</div>';return;}
+  var dwd=allDays.map(function(d){var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);return{date:d.date,cap:d.cap,spent:s,delta:d.cap-s};});
+  var cum=dwd.reduce(function(t,d){return t+d.delta;},0);
+  var cv=document.getElementById('cum-val'); cv.textContent=fmt(cum,true); cv.className='cum-val '+(cum>=0?'c-g':'c-r');
+  document.getElementById('cum-days').textContent=allDays.length+' day'+(allDays.length!==1?'s':'')+' tracked';
+  var avg=cum/allDays.length,ae=document.getElementById('cum-avg'); ae.textContent=fmt(avg,true)+'/day avg'; ae.className=avg>=0?'c-g':'c-r';
+  renderStats(dwd);
+  var asc=dwd.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}),rm={},run=0;
+  asc.forEach(function(d){run+=d.delta;rm[d.date]=run;});
+  var hl=document.getElementById('hist-list'); hl.innerHTML='';
+  dwd.forEach(function(d){
+    var pct=d.cap>0?Math.min(d.spent/d.cap*100,100):0,bc=pct<=100?'var(--green)':'var(--red)',rc=rm[d.date],de=document.createElement('div');
+    de.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px;cursor:pointer';
+    de.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--white)">'+fmtDate(d.date)+'</span><span style="font-family:var(--mono);font-size:14px;font-weight:bold;'+(d.delta>=0?'color:var(--green)':'color:var(--red)')+'">'+fmt(d.delta,true)+'</span></div><div style="height:3px;background:var(--card2);border-radius:2px;overflow:hidden;margin-bottom:5px"><div style="height:100%;width:'+Math.min(pct,100)+'%;background:'+bc+';border-radius:2px"></div></div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--off)"><span>'+fmt(d.spent)+' of '+fmt(d.cap)+' cap</span><span style="font-weight:bold;'+(rc>=0?'color:var(--green)':'color:var(--red)')+'">running: '+fmt(rc,true)+'</span></div>';
+    de.addEventListener('click',function(){switchTab('calendar');calYear=new Date(d.date).getFullYear();calMonth=new Date(d.date).getMonth();selectedDate=d.date;renderCalendar();renderDayDetail(d.date);});
     hl.appendChild(de);
-  }
+  });
 }
 
-function renderStats(days) {
-  var grid = document.getElementById('stats-grid');
-  grid.innerHTML = '';
-  var now = new Date();
-  function sf(n) {
-    var cut = new Date(now); cut.setDate(cut.getDate() - n);
-    var sub = days.filter(function(d){ return new Date(d.date) >= cut; });
-    if (!sub.length) return null;
-    var td = sub.reduce(function(t,d){ return t+d.delta; }, 0);
-    var un = sub.filter(function(d){ return d.delta >= 0; }).length;
-    return { n: sub.length, td: td, un: un };
-  }
-  [{ lbl:'7-Day Net', days:7 }, { lbl:'30-Day Net', days:30 }].forEach(function(c) {
-    var st = sf(c.days), el = document.createElement('div');
-    el.className = 'stat-card';
-    if (!st) { el.innerHTML = '<div class="stat-lbl">' + c.lbl + '</div><div class="stat-val" style="color:#555">—</div><div class="stat-sub">Not enough data</div>'; }
-    else { el.innerHTML = '<div class="stat-lbl">' + c.lbl + '</div><div class="stat-val ' + (st.td>=0?'c-g':'c-r') + '">' + fmt(st.td,true) + '</div><div class="stat-sub">' + st.un + '/' + st.n + ' days under cap</div>'; }
+function renderStats(days){
+  var grid=document.getElementById('stats-grid'); grid.innerHTML='';
+  var now=new Date();
+  function sf(n){var cut=new Date(now);cut.setDate(cut.getDate()-n);var sub=days.filter(function(d){return new Date(d.date)>=cut;});if(!sub.length)return null;var td=sub.reduce(function(t,d){return t+d.delta;},0),un=sub.filter(function(d){return d.delta>=0;}).length;return{n:sub.length,td:td,un:un};}
+  [{lbl:'7-Day Net',days:7},{lbl:'30-Day Net',days:30}].forEach(function(c){
+    var st=sf(c.days),el=document.createElement('div'); el.className='stat-card';
+    if(!st){el.innerHTML='<div class="stat-lbl">'+c.lbl+'</div><div class="stat-val" style="color:#555">—</div><div class="stat-sub">Not enough data</div>';}
+    else{el.innerHTML='<div class="stat-lbl">'+c.lbl+'</div><div class="stat-val '+(st.td>=0?'c-g':'c-r')+'">'+fmt(st.td,true)+'</div><div class="stat-sub">'+st.un+'/'+st.n+' days under cap</div>';}
     grid.appendChild(el);
   });
 }
 
-function fmtDate(ds) {
-  var d = new Date(ds), diff = Math.round((new Date(TODAY) - d) / 86400000);
-  if (diff === 1) return 'Yesterday';
-  if (diff === 0) return 'Today';
-  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+// ── CALENDAR ──
+function renderCalendar(){
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month').textContent=months[calMonth]+' '+calYear;
+  var grid=document.getElementById('cal-grid'); grid.innerHTML='';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function(d){var el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
+  var first=new Date(calYear,calMonth,1).getDay();
+  var days=new Date(calYear,calMonth+1,0).getDate();
+  var todayDate=new Date();
+  // Build date lookup
+  var dataMap={};
+  allDays.forEach(function(d){
+    var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);
+    dataMap[d.date]={cap:d.cap,spent:s,delta:d.cap-s,receipts:d.receipts};
+  });
+  for(var i=0;i<first;i++){var el=document.createElement('div');el.className='cal-day empty';el.innerHTML='<span class="cal-day-num"></span>';grid.appendChild(el);}
+  for(var day=1;day<=days;day++){
+    var d=new Date(calYear,calMonth,day);
+    var ds=d.toDateString();
+    var data=dataMap[ds];
+    var isToday=ds===TODAY;
+    var isSel=ds===selectedDate;
+    var el=document.createElement('div');
+    el.className='cal-day'+(data?' has-data':'')+(isToday?' today':'')+(isSel?' selected':'');
+    var pipColor=data?(data.delta>=0?'var(--green)':'var(--red)'):'transparent';
+    el.innerHTML='<span class="cal-day-num">'+day+'</span>'+(data?'<div class="cal-pip" style="background:'+pipColor+'"></div>':'');
+    if(data||(isToday)){
+      (function(dateStr){el.addEventListener('click',function(){selectedDate=dateStr;renderCalendar();renderDayDetail(dateStr);});})(ds);
+    }
+    grid.appendChild(el);
+  }
+  if(selectedDate) renderDayDetail(selectedDate);
+  else document.getElementById('day-detail').innerHTML='';
 }
+
+function renderDayDetail(dateStr){
+  var dd=document.getElementById('day-detail');
+  var d=new Date(dateStr);
+  var dayData=allDays.find(function(x){return x.date===dateStr;});
+  if(!dayData){
+    if(dateStr===TODAY&&todayCap===null){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No cap set for today yet.</div></div>';return;}
+    dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data for this day.</div></div>';
+    return;
+  }
+  var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
+  var delta=dayData.cap-spent;
+  var pct=dayData.cap>0?Math.min(spent/dayData.cap*100,100):0;
+  var bc=pct<=100?'var(--green)':'var(--red)';
+  var dateLabel=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  var html='<div class="day-detail">';
+  html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span class="dd-delta '+(delta>=0?'c-g':'c-r')+'">'+fmt(delta,true)+'</span></div>';
+  html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
+  html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(dayData.cap)+' cap</div>';
+  html+='<div class="dd-receipts">';
+  if(dayData.receipts.length===0){html+='<div class="dd-empty">No receipts logged.</div>';}
+  else{dayData.receipts.forEach(function(r){html+='<div class="dd-receipt"><span class="dd-desc">'+esc(r.desc||'—')+'</span><span class="dd-time">'+esc(r.time)+'</span><span class="dd-amt">−'+fmt(r.amount)+'</span></div>';});}
+  html+='</div></div>';
+  dd.innerHTML=html;
+}
+
+window.calPrev=function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
+window.calNext=function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
+
+function fmtDate(ds){var d=new Date(ds),diff=Math.round((new Date(TODAY)-d)/86400000);if(diff===1)return'Yesterday';if(diff===0)return'Today';return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
 
 // ── ACTIONS ──
-window.setCap = function() {
-  var v = parseFloat(document.getElementById('cap-input').value);
-  if (!v || v <= 0) { shake('cap-input'); return; }
-  todayCap = v;
-  todayReceipts = [];
-  setSyncStatus('syncing');
-  // Write a cap marker row (amount=0)
-  api('POST', 'receipts', { date: TODAY, cap: v, description: '__cap__', amount: 0 }).then(function() {
-    setSyncStatus('ok');
-    // Remove old today entries from allDays and re-add
-    allDays = allDays.filter(function(d){ return d.date !== TODAY; });
-    allDays.unshift({ date: TODAY, cap: v, receipts: [] });
-    render();
-  }).catch(function(){ setSyncStatus('err'); });
-};
+window.setCap=function(){var v=parseFloat(document.getElementById('cap-input').value);if(!v||v<=0){shake('cap-input');return;}todayCap=v;todayReceipts=[];setSyncStatus('syncing');api('POST','receipts',{date:TODAY,cap:v,description:'__cap__',amount:0}).then(function(){setSyncStatus('ok');allDays=allDays.filter(function(d){return d.date!==TODAY;});allDays.unshift({date:TODAY,cap:v,receipts:[]});render();}).catch(function(){setSyncStatus('err');});};
 
-window.addReceipt = function() {
-  var amt = parseFloat(document.getElementById('r-amt').value);
-  if (!amt || amt <= 0) { shake('r-amt'); return; }
-  var desc = document.getElementById('r-desc').value.trim();
-  document.getElementById('r-amt').value = '';
-  document.getElementById('r-desc').value = '';
-  document.getElementById('r-desc').focus();
-  setSyncStatus('syncing');
-  api('POST', 'receipts', { date: TODAY, cap: todayCap, description: desc || null, amount: amt }).then(function(rows) {
-    var row = Array.isArray(rows) ? rows[0] : rows;
-    var time = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    todayReceipts.push({ id: row.id, desc: desc, amount: amt, time: time });
-    // update allDays today entry
-    var td = allDays.find(function(d){ return d.date === TODAY; });
-    if (td) td.receipts = todayReceipts.slice();
-    setSyncStatus('ok');
-    render();
-  }).catch(function(){ setSyncStatus('err'); });
-};
+window.addReceipt=function(){var amt=parseFloat(document.getElementById('r-amt').value);if(!amt||amt<=0){shake('r-amt');return;}var desc=document.getElementById('r-desc').value.trim();document.getElementById('r-amt').value='';document.getElementById('r-desc').value='';document.getElementById('r-desc').focus();setSyncStatus('syncing');api('POST','receipts',{date:TODAY,cap:todayCap,description:desc||null,amount:amt}).then(function(rows){var row=Array.isArray(rows)?rows[0]:rows;var time=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});todayReceipts.push({id:row.id,desc:desc,amount:amt,time:time});var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.receipts=todayReceipts.slice();setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
 
-function deleteReceipt(id) {
-  setSyncStatus('syncing');
-  api('DELETE', 'receipts?id=eq.' + id).then(function() {
-    todayReceipts = todayReceipts.filter(function(r){ return r.id !== id; });
-    var td = allDays.find(function(d){ return d.date === TODAY; });
-    if (td) td.receipts = todayReceipts.slice();
-    setSyncStatus('ok');
-    render();
-  }).catch(function(){ setSyncStatus('err'); });
-}
+function deleteReceipt(id){setSyncStatus('syncing');api('DELETE','receipts?id=eq.'+id).then(function(){todayReceipts=todayReceipts.filter(function(r){return r.id!==id;});var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.receipts=todayReceipts.slice();setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});}
 
-window.clearToday = function() {
-  if (!confirm('Clear all receipts for today?')) return;
-  setSyncStatus('syncing');
-  api('DELETE', 'receipts?date=eq.' + encodeURIComponent(TODAY) + '&amount=gt.0').then(function() {
-    todayReceipts = [];
-    var td = allDays.find(function(d){ return d.date === TODAY; });
-    if (td) td.receipts = [];
-    setSyncStatus('ok');
-    render();
-  }).catch(function(){ setSyncStatus('err'); });
-};
+window.clearToday=function(){if(!confirm('Clear all receipts for today?'))return;setSyncStatus('syncing');api('DELETE','receipts?date=eq.'+encodeURIComponent(TODAY)+'&amount=gt.0').then(function(){todayReceipts=[];var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.receipts=[];setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
 
-window.startCapEdit = function() {
-  document.getElementById('cap-static').style.display = 'none';
-  document.getElementById('cap-hint').style.display = 'none';
-  document.getElementById('cap-edit-row').classList.add('on');
-  var inp = document.getElementById('cap-edit-inp');
-  inp.value = todayCap ? todayCap.toFixed(2) : '';
-  inp.focus(); inp.select();
-};
-window.confirmCapEdit = function() {
-  var v = parseFloat(document.getElementById('cap-edit-inp').value);
-  if (!v || v <= 0) { shake('cap-edit-inp'); return; }
-  todayCap = v;
-  cancelCapEdit();
-  setSyncStatus('syncing');
-  // Update all today rows with new cap
-  api('PATCH', 'receipts?date=eq.' + encodeURIComponent(TODAY), { cap: v }).then(function() {
-    var td = allDays.find(function(d){ return d.date === TODAY; });
-    if (td) td.cap = v;
-    setSyncStatus('ok');
-    render();
-  }).catch(function(){ setSyncStatus('err'); });
-};
-window.cancelCapEdit = function() {
-  document.getElementById('cap-edit-row').classList.remove('on');
-  document.getElementById('cap-static').style.display = '';
-  document.getElementById('cap-hint').style.display = '';
-};
-document.getElementById('cap-edit-inp').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') confirmCapEdit();
-  if (e.key === 'Escape') cancelCapEdit();
-});
+window.startCapEdit=function(){document.getElementById('cap-static').style.display='none';document.getElementById('cap-hint').style.display='none';document.getElementById('cap-edit-row').classList.add('on');var inp=document.getElementById('cap-edit-inp');inp.value=todayCap?todayCap.toFixed(2):'';inp.focus();inp.select();};
+window.confirmCapEdit=function(){var v=parseFloat(document.getElementById('cap-edit-inp').value);if(!v||v<=0){shake('cap-edit-inp');return;}todayCap=v;cancelCapEdit();setSyncStatus('syncing');api('PATCH','receipts?date=eq.'+encodeURIComponent(TODAY),{cap:v}).then(function(){var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.cap=v;setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
+window.cancelCapEdit=function(){document.getElementById('cap-edit-row').classList.remove('on');document.getElementById('cap-static').style.display='';document.getElementById('cap-hint').style.display='';};
+document.getElementById('cap-edit-inp').addEventListener('keydown',function(e){if(e.key==='Enter')confirmCapEdit();if(e.key==='Escape')cancelCapEdit();});
 
-function shake(id) {
-  var el = document.getElementById(id);
-  el.style.borderColor = 'var(--red)';
-  if (el.animate) el.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:260});
-  setTimeout(function(){ el.style.borderColor = ''; }, 700);
-}
+function shake(id){var el=document.getElementById(id);el.style.borderColor='var(--red)';if(el.animate)el.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:260});setTimeout(function(){el.style.borderColor='';},700);}
 
-document.getElementById('cap-input').addEventListener('keydown', function(e){ if(e.key==='Enter') setCap(); });
-document.getElementById('r-desc').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('r-amt').focus(); });
-document.getElementById('r-amt').addEventListener('keydown', function(e){ if(e.key==='Enter') addReceipt(); });
+document.getElementById('cap-input').addEventListener('keydown',function(e){if(e.key==='Enter')setCap();});
+document.getElementById('r-desc').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('r-amt').focus();});
+document.getElementById('r-amt').addEventListener('keydown',function(e){if(e.key==='Enter')addReceipt();});
 
-// Boot
 loadAll();
 </script>
 </body>
