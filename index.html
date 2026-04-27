@@ -178,7 +178,7 @@ input:focus{border-color:var(--gold)}
 <!-- ── TODAY ── -->
 <div class="tab-content active" id="tab-today">
   <div id="cap-setup">
-    <div class="lbl">Daily Spend Cap</div>
+    <div class="lbl">Set Daily Cap <span id="cap-setup-note" style="font-size:10px;color:var(--sub);letter-spacing:.05em;font-weight:normal;text-transform:none"></span></div>
     <div class="cap-row">
       <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
       <button class="btn" onclick="setCap()">SET CAP</button>
@@ -253,9 +253,17 @@ var todayCap=null, todayReceipts=[], allDays=[];
 var calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 var selectedDate=null;
 var RESET_KEY="pfhq_running_reset";var resetAnchor=null;
+var CAP_KEY="pfhq_default_cap";var defaultCap=null;
 
 document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 try{var _ra=localStorage.getItem(RESET_KEY);resetAnchor=_ra?new Date(_ra):null;}catch(e){resetAnchor=null;}
+try{var _dc=localStorage.getItem(CAP_KEY);defaultCap=_dc?parseFloat(_dc):null;}catch(e){defaultCap=null;}
+
+// ── SAVE DEFAULT CAP TO SUPABASE ──
+function saveDefaultCap(v){
+  api('PATCH','settings?key=eq.default_cap',{value:String(v),updated_at:new Date().toISOString()})
+    .catch(function(e){console.warn('Could not save cap to settings:',e);});
+}
 
 // ── API ──
 function api(method,path,body){
@@ -281,7 +289,19 @@ window.switchTab=function(name){
 function loadAll(){
   setSyncStatus('syncing');
   document.getElementById('loading-msg').textContent='Loading data...';
-  return api('GET','receipts?order=created_at.asc&select=*').then(function(rows){
+  // Fetch settings and receipts in parallel
+  return Promise.all([
+    api('GET','receipts?order=created_at.asc&select=*'),
+    api('GET','settings?select=*')
+  ]).then(function(results){
+    var rows=results[0];
+    var settings=results[1]||[];
+    // Load default cap from Supabase settings
+    var capSetting=settings.find(function(s){return s.key==='default_cap';});
+    if(capSetting && parseFloat(capSetting.value)>0){
+      defaultCap=parseFloat(capSetting.value);
+      try{localStorage.setItem(CAP_KEY,defaultCap);}catch(e){}
+    }
     var byDate={};
     (rows||[]).forEach(function(r){
       if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:r.cap,receipts:[]};
@@ -292,9 +312,16 @@ function loadAll(){
     var td=byDate[TODAY];
     todayCap=td?td.cap:null;
     todayReceipts=td?td.receipts:[];
+    // If no cap set today but we have a default, auto-apply it silently
+    if(todayCap===null && defaultCap!==null){
+      todayCap=defaultCap;
+      allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
+      api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
+    }
     setSyncStatus('ok');
     document.getElementById('loading').classList.add('hidden');
     render();
+    try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
   }).catch(function(e){setSyncStatus('err');document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
 }
 
@@ -433,7 +460,7 @@ window.calNext=function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}rende
 function fmtDate(ds){var d=new Date(ds),diff=Math.round((new Date(TODAY)-d)/86400000);if(diff===1)return'Yesterday';if(diff===0)return'Today';return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
 
 // ── ACTIONS ──
-window.setCap=function(){var v=parseFloat(document.getElementById('cap-input').value);if(!v||v<=0){shake('cap-input');return;}todayCap=v;todayReceipts=[];setSyncStatus('syncing');api('POST','receipts',{date:TODAY,cap:v,description:'__cap__',amount:0}).then(function(){setSyncStatus('ok');allDays=allDays.filter(function(d){return d.date!==TODAY;});allDays.unshift({date:TODAY,cap:v,receipts:[]});render();}).catch(function(){setSyncStatus('err');});};
+window.setCap=function(){var v=parseFloat(document.getElementById('cap-input').value);if(!v||v<=0){shake('cap-input');return;}todayCap=v;todayReceipts=[];defaultCap=v;try{localStorage.setItem(CAP_KEY,v);}catch(e){};try{var n=document.getElementById('cap-setup-note');if(n)n.textContent='(current: '+fmt(v)+')';}catch(e){};saveDefaultCap(v);setSyncStatus('syncing');api('POST','receipts',{date:TODAY,cap:v,description:'__cap__',amount:0}).then(function(){setSyncStatus('ok');allDays=allDays.filter(function(d){return d.date!==TODAY;});allDays.unshift({date:TODAY,cap:v,receipts:[]});render();}).catch(function(){setSyncStatus('err');});};
 
 window.addReceipt=function(){var amt=parseFloat(document.getElementById('r-amt').value);if(!amt||amt<=0){shake('r-amt');return;}var desc=document.getElementById('r-desc').value.trim();document.getElementById('r-amt').value='';document.getElementById('r-desc').value='';document.getElementById('r-desc').focus();setSyncStatus('syncing');api('POST','receipts',{date:TODAY,cap:todayCap,description:desc||null,amount:amt}).then(function(rows){var row=Array.isArray(rows)?rows[0]:rows;var time=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});todayReceipts.push({id:row.id,desc:desc,amount:amt,time:time});var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.receipts=todayReceipts.slice();setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
 
@@ -442,7 +469,7 @@ function deleteReceipt(id){setSyncStatus('syncing');api('DELETE','receipts?id=eq
 window.clearToday=function(){if(!confirm('Clear all receipts for today?'))return;setSyncStatus('syncing');api('DELETE','receipts?date=eq.'+encodeURIComponent(TODAY)+'&amount=gt.0').then(function(){todayReceipts=[];var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.receipts=[];setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
 
 window.startCapEdit=function(){document.getElementById('cap-static').style.display='none';document.getElementById('cap-hint').style.display='none';document.getElementById('cap-edit-row').classList.add('on');var inp=document.getElementById('cap-edit-inp');inp.value=todayCap?todayCap.toFixed(2):'';inp.focus();inp.select();};
-window.confirmCapEdit=function(){var v=parseFloat(document.getElementById('cap-edit-inp').value);if(!v||v<=0){shake('cap-edit-inp');return;}todayCap=v;cancelCapEdit();setSyncStatus('syncing');api('PATCH','receipts?date=eq.'+encodeURIComponent(TODAY),{cap:v}).then(function(){var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.cap=v;setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
+window.confirmCapEdit=function(){var v=parseFloat(document.getElementById('cap-edit-inp').value);if(!v||v<=0){shake('cap-edit-inp');return;}todayCap=v;defaultCap=v;try{localStorage.setItem(CAP_KEY,v);}catch(e){};saveDefaultCap(v);try{var n=document.getElementById('cap-setup-note');if(n)n.textContent='(current: '+fmt(v)+')';}catch(e){};saveDefaultCap(v);cancelCapEdit();setSyncStatus('syncing');api('PATCH','receipts?date=eq.'+encodeURIComponent(TODAY),{cap:v}).then(function(){var td=allDays.find(function(d){return d.date===TODAY;});if(td)td.cap=v;setSyncStatus('ok');render();}).catch(function(){setSyncStatus('err');});};
 window.cancelCapEdit=function(){document.getElementById('cap-edit-row').classList.remove('on');document.getElementById('cap-static').style.display='';document.getElementById('cap-hint').style.display='';};
 document.getElementById('cap-edit-inp').addEventListener('keydown',function(e){if(e.key==='Enter')confirmCapEdit();if(e.key==='Escape')cancelCapEdit();});
 
