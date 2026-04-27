@@ -142,6 +142,16 @@ input:focus{border-color:var(--gold)}
 .loading-msg{font-family:var(--mono);font-size:12px;color:var(--sub)}
 .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── RUNNING BALANCE ── */
+#running-card{margin-bottom:18px;display:none}
+.running-inner{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.running-left .rl-lbl{font-family:var(--mono);font-size:10px;font-weight:bold;letter-spacing:.18em;color:var(--sub);text-transform:uppercase;margin-bottom:4px}
+.running-left .rl-val{font-family:var(--mono);font-size:26px;font-weight:bold}
+.running-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.rl-since{font-family:var(--mono);font-size:10px;color:var(--sub)}
+.rl-reset{background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--sub);padding:5px 10px;cursor:pointer;-webkit-appearance:none;letter-spacing:.08em}
+.rl-reset:active{background:var(--card2);color:var(--white)}
+
 </style>
 </head>
 <body>
@@ -195,6 +205,19 @@ input:focus{border-color:var(--gold)}
       <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
     </div>
   </div>
+  <!-- RUNNING BALANCE -->
+  <div id="running-card">
+    <div class="running-inner">
+      <div class="running-left">
+        <div class="rl-lbl">Running Balance</div>
+        <div class="rl-val" id="rl-val">+$0.00</div>
+      </div>
+      <div class="running-right">
+        <div class="rl-since" id="rl-since"></div>
+        <button class="rl-reset" onclick="resetRunning()">RESET</button>
+      </div>
+    </div>
+  </div>
   <div id="receipt-section">
     <div class="lbl">Add Receipt</div>
     <div class="receipt-card">
@@ -237,8 +260,10 @@ var TODAY=new Date().toDateString();
 var todayCap=null, todayReceipts=[], allDays=[];
 var calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 var selectedDate=null;
+var RESET_KEY="pfhq_running_reset";var resetAnchor=null;
 
 document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+try{var _ra=localStorage.getItem(RESET_KEY);resetAnchor=_ra?new Date(_ra):null;}catch(e){resetAnchor=null;}
 
 // ── API ──
 function api(method,path,body){
@@ -305,6 +330,7 @@ function render(){
     show('done-banner',done);
     var rs=document.getElementById('receipt-section'); rs.style.opacity=done?'0.3':'1'; rs.style.pointerEvents=done?'none':'';
     renderReceipts();
+    renderRunning();
   }
 }
 
@@ -321,6 +347,34 @@ function renderReceipts(){
   }
   list.querySelectorAll('.ri-del').forEach(function(btn){btn.addEventListener('click',function(){deleteReceipt(this.getAttribute('data-id'));});});
 }
+
+// ── RENDER RUNNING BALANCE ──
+function renderRunning(){
+  var rc=document.getElementById('running-card');
+  if(todayCap===null){rc.style.display='none';return;}
+  rc.style.display='block';
+  // Compute cumulative delta across all days since resetAnchor (excluding today — today's delta is live)
+  var pastDays=allDays.filter(function(d){return d.date!==TODAY;});
+  if(resetAnchor){pastDays=pastDays.filter(function(d){return new Date(d.date)>=resetAnchor;});}
+  var pastDelta=pastDays.reduce(function(t,d){var s=d.receipts.reduce(function(a,r){return a+r.amount;},0);return t+(d.cap-s);},0);
+  // Add today's live delta
+  var todayDelta=todayCap-totalSpent();
+  var total=pastDelta+todayDelta;
+  var el=document.getElementById('rl-val');
+  el.textContent=fmt(total,true);
+  el.className='rl-val '+(total>=0?'c-g':'c-r');
+  var sinceEl=document.getElementById('rl-since');
+  if(resetAnchor){sinceEl.textContent='since '+resetAnchor.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+  else{sinceEl.textContent=allDays.length>1?'all-time':'today only';}
+}
+
+window.resetRunning=function(){
+  if(!confirm('Reset running balance to zero from today?')) return;
+  var now=new Date();
+  resetAnchor=now;
+  try{localStorage.setItem(RESET_KEY,now.toISOString());}catch(e){}
+  renderRunning();
+};
 
 // ── RENDER HISTORY ──
 function renderHistory(){
