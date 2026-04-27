@@ -172,7 +172,6 @@ input:focus{border-color:var(--gold)}
 
 <div class="tab-bar">
   <button class="tab active" onclick="switchTab('today')">Today</button>
-  <button class="tab" onclick="switchTab('history')">History</button>
   <button class="tab" onclick="switchTab('calendar')">Calendar</button>
 </div>
 
@@ -234,13 +233,6 @@ input:focus{border-color:var(--gold)}
   </div>
 </div>
 
-<!-- ── HISTORY ── -->
-<div class="tab-content" id="tab-history">
-  <div class="cum-banner"><div><div class="cum-lbl">Running Total</div><div class="cum-val" id="cum-val">+$0.00</div></div><div class="cum-right"><div class="cum-days" id="cum-days">0 days tracked</div><div class="cum-avg" id="cum-avg"></div></div></div>
-  <div class="stats-grid" id="stats-grid"></div>
-  <div id="hist-list"></div>
-</div>
-
 <!-- ── CALENDAR ── -->
 <div class="tab-content" id="tab-calendar">
   <div class="cal-nav">
@@ -279,11 +271,10 @@ function setSyncStatus(s){document.getElementById('sync-dot').className='sync-do
 
 // ── TABS ──
 window.switchTab=function(name){
-  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['today','history','calendar'][i]===name);});
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['today','calendar'][i]===name);});
   document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='calendar') renderCalendar();
-  if(name==='history') renderHistory();
 };
 
 // ── LOAD ──
@@ -375,39 +366,6 @@ window.resetRunning=function(){
   try{localStorage.setItem(RESET_KEY,now.toISOString());}catch(e){}
   renderRunning();
 };
-
-// ── RENDER HISTORY ──
-function renderHistory(){
-  if(!allDays.length){document.getElementById('tab-history').innerHTML='<div class="empty-state" style="padding:40px">No history yet — start tracking!</div>';return;}
-  var dwd=allDays.map(function(d){var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);return{date:d.date,cap:d.cap,spent:s,delta:d.cap-s};});
-  var cum=dwd.reduce(function(t,d){return t+d.delta;},0);
-  var cv=document.getElementById('cum-val'); cv.textContent=fmt(cum,true); cv.className='cum-val '+(cum>=0?'c-g':'c-r');
-  document.getElementById('cum-days').textContent=allDays.length+' day'+(allDays.length!==1?'s':'')+' tracked';
-  var avg=cum/allDays.length,ae=document.getElementById('cum-avg'); ae.textContent=fmt(avg,true)+'/day avg'; ae.className=avg>=0?'c-g':'c-r';
-  renderStats(dwd);
-  var asc=dwd.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}),rm={},run=0;
-  asc.forEach(function(d){run+=d.delta;rm[d.date]=run;});
-  var hl=document.getElementById('hist-list'); hl.innerHTML='';
-  dwd.forEach(function(d){
-    var pct=d.cap>0?Math.min(d.spent/d.cap*100,100):0,bc=pct<=100?'var(--green)':'var(--red)',rc=rm[d.date],de=document.createElement('div');
-    de.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px;cursor:pointer';
-    de.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-family:var(--mono);font-size:13px;font-weight:bold;color:var(--white)">'+fmtDate(d.date)+'</span><span style="font-family:var(--mono);font-size:14px;font-weight:bold;'+(d.delta>=0?'color:var(--green)':'color:var(--red)')+'">'+fmt(d.delta,true)+'</span></div><div style="height:3px;background:var(--card2);border-radius:2px;overflow:hidden;margin-bottom:5px"><div style="height:100%;width:'+Math.min(pct,100)+'%;background:'+bc+';border-radius:2px"></div></div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--off)"><span>'+fmt(d.spent)+' of '+fmt(d.cap)+' cap</span><span style="font-weight:bold;'+(rc>=0?'color:var(--green)':'color:var(--red)')+'">running: '+fmt(rc,true)+'</span></div>';
-    de.addEventListener('click',function(){switchTab('calendar');calYear=new Date(d.date).getFullYear();calMonth=new Date(d.date).getMonth();selectedDate=d.date;renderCalendar();renderDayDetail(d.date);});
-    hl.appendChild(de);
-  });
-}
-
-function renderStats(days){
-  var grid=document.getElementById('stats-grid'); grid.innerHTML='';
-  var now=new Date();
-  function sf(n){var cut=new Date(now);cut.setDate(cut.getDate()-n);var sub=days.filter(function(d){return new Date(d.date)>=cut;});if(!sub.length)return null;var td=sub.reduce(function(t,d){return t+d.delta;},0),un=sub.filter(function(d){return d.delta>=0;}).length;return{n:sub.length,td:td,un:un};}
-  [{lbl:'7-Day Net',days:7},{lbl:'30-Day Net',days:30}].forEach(function(c){
-    var st=sf(c.days),el=document.createElement('div'); el.className='stat-card';
-    if(!st){el.innerHTML='<div class="stat-lbl">'+c.lbl+'</div><div class="stat-val" style="color:#555">—</div><div class="stat-sub">Not enough data</div>';}
-    else{el.innerHTML='<div class="stat-lbl">'+c.lbl+'</div><div class="stat-val '+(st.td>=0?'c-g':'c-r')+'">'+fmt(st.td,true)+'</div><div class="stat-sub">'+st.un+'/'+st.n+' days under cap</div>';}
-    grid.appendChild(el);
-  });
-}
 
 // ── CALENDAR ──
 function renderCalendar(){
