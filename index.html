@@ -70,9 +70,9 @@ input:focus{border-color:var(--gold)}
 .receipt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:9px}
 .receipt-inputs{display:flex;gap:9px;align-items:center}
 .receipt-inputs input[type=text]{font-size:15px;padding:13px 12px;flex:1;min-width:0}
-.amt-wrap{position:relative;width:110px;flex-shrink:0}
-.amt-wrap .sym{font-size:15px;left:11px}
-.amt-wrap input{font-size:15px;padding:13px 9px 13px 28px}
+.amt-wrap{position:relative;width:110px;flex-shrink:0;overflow:hidden}
+.amt-wrap .sym{font-size:15px;left:11px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1}
+.amt-wrap input{font-size:15px;padding:13px 9px 13px 26px;width:100%}
 #log-section{display:none}
 .log-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
 .receipt-list{display:flex;flex-direction:column;gap:7px}
