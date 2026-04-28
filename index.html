@@ -331,7 +331,7 @@ function render(){
   document.getElementById('cap-static').textContent=fmt(effCap);
   var baseEl=document.getElementById('cap-base');
   if(Math.abs(rb)>0.005){
-    baseEl.textContent=fmt(todayCap)+' '+(rb>=0?'+':'')+fmt(rb,true);
+    baseEl.textContent=fmt(todayCap)+' '+fmt(rb,true);
   } else {
     baseEl.textContent='';
   }
