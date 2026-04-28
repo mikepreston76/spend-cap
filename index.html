@@ -67,7 +67,7 @@ input:focus{border-color:var(--gold)}
 .receipt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:10px;align-items:center}
 .big-amt-wrap{position:relative;flex:1}
 .big-amt-wrap .sym{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:28px;color:#c9a84c;pointer-events:none;z-index:1}
-.big-amt-inp{background:#222222;border:1px solid #333333;border-radius:10px;color:#ffffff;font-family:var(--mono);font-size:32px;font-weight:bold;padding:18px 14px 18px 44px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff}
+.big-amt-inp{background:#222222;border:1px solid #333333;border-radius:10px;color:#ffffff;font-family:var(--mono);font-size:48px;font-weight:bold;padding:28px 14px 18px 44px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff}
 .big-amt-inp::-webkit-outer-spin-button,.big-amt-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .big-amt-inp::placeholder{color:#444;-webkit-text-fill-color:#444}
 .big-amt-inp:focus{border-color:#c9a84c}
@@ -148,7 +148,7 @@ input:focus{border-color:var(--gold)}
   <div id="cap-setup">
     <div class="lbl">Set Daily Cap <span id="cap-setup-note" style="font-size:10px;color:var(--sub);letter-spacing:.05em;font-weight:normal;text-transform:none"></span></div>
     <div class="cap-row">
-      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
       <button class="btn" onclick="setCap()">SET CAP</button>
     </div>
   </div>
@@ -197,7 +197,7 @@ input:focus{border-color:var(--gold)}
   <div id="receipt-section">
     <div class="receipt-card">
       <div class="big-amt-wrap">
-        <span class="sym" style="font-size:28px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
+        <span class="sym" style="font-size:40px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
         <input class="big-amt-inp" type="number" id="r-amt" placeholder="0.00" min="0.01" step="0.01" inputmode="decimal">
       </div>
       <button class="log-btn" onclick="addReceipt()">LOG</button>
