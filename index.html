@@ -305,7 +305,7 @@ function loadAll(){
   }).catch(function(e){document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
 }
 
-function fmt(n,sign){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
+function fmt(n,sign){var abs=String(Math.ceil(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
 function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
