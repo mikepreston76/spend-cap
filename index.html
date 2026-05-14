@@ -474,8 +474,8 @@ function renderDayDetail(dateStr){
   var runBefore=0;
   for(var i=0;i<asc.length;i++){
     var ps=asc[i].receipts.reduce(function(t,r){return t+r.amount;},0);
-    var pEff=Math.max(asc[i].cap+runBefore,0);
-    runBefore+=pEff-ps;
+    // Delta = base cap - spent (not effective cap - spent, to avoid exponential compounding)
+    runBefore+=asc[i].cap-ps;
   }
   var effCap=Math.max(dayData.cap+runBefore,0);
   var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
