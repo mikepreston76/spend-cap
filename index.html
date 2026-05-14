@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -20,6 +21,7 @@ body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:
 .inp-wrap{position:relative;flex:1}
 .inp-wrap .sym{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:18px;color:var(--gold);pointer-events:none;z-index:1}
 input[type=number],input[type=text]{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:var(--mono);font-size:17px;padding:14px 12px 14px 36px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s}
+  .big-amt-inp{background:#222222 !important;border:1px solid #333333 !important;border-radius:10px;color:#ffffff !important;font-family:var(--mono);font-size:48px !important;font-weight:bold;padding:28px 14px 28px 56px !important;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff !important}
 input::placeholder{color:#555}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 input:focus{border-color:var(--gold)}
@@ -63,14 +65,14 @@ input:focus{border-color:var(--gold)}
 .rl-reset{background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--sub);padding:5px 10px;cursor:pointer;-webkit-appearance:none;letter-spacing:.08em}
 .rl-reset:active{background:var(--card2);color:var(--white)}
 #receipt-section{margin-bottom:22px;display:none}
-.receipt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:10px;align-items:center}
+.receipt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:10px;align-items:stretch}
 .big-amt-wrap{position:relative;flex:1}
 .big-amt-wrap .sym{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:28px;color:#c9a84c;pointer-events:none;z-index:1}
-.big-amt-inp{background:#222222;border:1px solid #333333;border-radius:10px;color:#ffffff;font-family:var(--mono);font-size:32px;font-weight:bold;padding:18px 14px 18px 44px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff}
+.big-amt-inp{background:#222222;border:1px solid #333333;border-radius:10px;color:#ffffff;font-family:var(--mono);font-size:48px;font-weight:bold;padding:28px 14px 28px 56px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff}
 .big-amt-inp::-webkit-outer-spin-button,.big-amt-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .big-amt-inp::placeholder{color:#444;-webkit-text-fill-color:#444}
 .big-amt-inp:focus{border-color:#c9a84c}
-.log-btn{background:#c9a84c;color:#000000;border:none;border-radius:10px;font-family:var(--mono);font-size:16px;font-weight:bold;letter-spacing:.08em;padding:18px 22px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;transition:opacity .15s,transform .1s}
+.log-btn{background:#c9a84c;color:#000000;border:none;border-radius:10px;font-family:var(--mono);font-size:16px;font-weight:bold;letter-spacing:.08em;padding:28px 22px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;transition:opacity .15s,transform .1s}
 .log-btn:active{transform:scale(.95);opacity:.85}
 #log-section{display:none}
 .log-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
@@ -142,11 +144,12 @@ input:focus{border-color:var(--gold)}
 </div>
 
 <!-- TODAY -->
+
 <div class="tab-content active" id="tab-today">
   <div id="cap-setup">
     <div class="lbl">Set Daily Cap <span id="cap-setup-note" style="font-size:10px;color:var(--sub);letter-spacing:.05em;font-weight:normal;text-transform:none"></span></div>
     <div class="cap-row">
-      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
       <button class="btn" onclick="setCap()">SET CAP</button>
     </div>
   </div>
@@ -178,6 +181,7 @@ input:focus{border-color:var(--gold)}
   </div>
 
   <!-- RUNNING BALANCE — past days only -->
+
   <div id="running-card">
     <div class="running-inner">
       <div>
@@ -194,8 +198,8 @@ input:focus{border-color:var(--gold)}
   <div id="receipt-section">
     <div class="receipt-card">
       <div class="big-amt-wrap">
-        <span class="sym" style="font-size:28px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
-        <input class="big-amt-inp" type="number" id="r-amt" placeholder="0.00" min="0.01" step="0.01" inputmode="decimal">
+        <span class="sym" style="font-size:40px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
+        <input class="big-amt-inp" type="number" id="r-amt" placeholder="0" min="0.01" step="0.01" inputmode="decimal">
       </div>
       <button class="log-btn" onclick="addReceipt()">LOG</button>
     </div>
@@ -208,6 +212,7 @@ input:focus{border-color:var(--gold)}
 </div>
 
 <!-- CALENDAR -->
+
 <div class="tab-content" id="tab-calendar">
   <div class="cal-nav">
     <button class="cal-arrow" onclick="calPrev()">‹</button>
@@ -282,11 +287,12 @@ function loadAll(){
     }
     var byDate={};
     rows.forEach(function(r){
-      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:0,receipts:[]};
-      if(r.cap>byDate[r.date].cap) byDate[r.date].cap=r.cap;
-      if(r.amount>0&&r.description!=='__cap__') byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
+      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:r.cap,receipts:[]};
+      byDate[r.date].cap=r.cap;
+      if(r.amount>0) byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
     });
     allDays=Object.values(byDate).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    console.log('allDays:', JSON.stringify(allDays.map(function(d){return {date:d.date,cap:d.cap,receipts:d.receipts.length};})));
     var td=byDate[TODAY];
     todayCap=td?td.cap:null;
     todayReceipts=td?td.receipts:[];
@@ -301,7 +307,7 @@ function loadAll(){
   }).catch(function(e){document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
 }
 
-function fmt(n,sign){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
+function fmt(n,sign){var abs=String(Math.ceil(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
 function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
@@ -327,7 +333,7 @@ function render(){
   document.getElementById('cap-static').textContent=fmt(effCap);
   var baseEl=document.getElementById('cap-base');
   if(Math.abs(rb)>0.005){
-    baseEl.textContent=fmt(todayCap)+' '+(rb>=0?'+':'')+fmt(rb,true);
+    baseEl.textContent=fmt(todayCap)+fmt(rb,true);
   } else {
     baseEl.textContent='';
   }
@@ -517,5 +523,6 @@ document.getElementById('r-amt').addEventListener('keydown',function(e){if(e.key
 
 loadAll();
 </script>
+
 </body>
 </html>
