@@ -490,14 +490,15 @@ function renderDayDetail(dateStr){
   if(isPast){
     html+='<div class="dd-add-row">';
     html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-inp" type="number" id="dd-inp-'+esc(dateStr)+'" placeholder="0" min="1" step="1" inputmode="decimal"></div>';
-    html+='<button class="dd-log-btn" onclick="addPastReceipt(''+esc(dateStr)+'')">LOG</button>';
+    html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastReceipt(this)">LOG</button>';
     html+='</div>';
   }
   html+='</div>';
   dd.innerHTML=html;
 }
 
-window.addPastReceipt=function(dateStr){
+window.addPastReceipt=function(btnOrDate){
+  var dateStr=typeof btnOrDate==='string'?btnOrDate:btnOrDate.getAttribute('data-date');
   var inp=document.getElementById('dd-inp-'+dateStr);
   if(!inp) return;
   var amt=parseFloat(inp.value);
