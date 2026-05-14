@@ -311,17 +311,23 @@ function loadAll(){
       allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
       api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
     }
-    // Gap-fill: credit full cap for any day between first tracked day and today with no data
+    // Gap-fill: credit full cap for missing days since the MOST RECENT tracked day
+    // Only look back 60 days max to avoid runaway compounding
     if(defaultCap!==null&&allDays.length>0){
-      var oldest=new Date(allDays[allDays.length-1].date);
-      var cursor=new Date(oldest);
-      cursor.setDate(cursor.getDate()+1);
       var todayD=new Date(TODAY);
+      var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
+      // Find most recent tracked day as start point (not oldest)
+      var recentTracked=new Date(allDays[0].date); // newest first
+      var gapStart=recentTracked>cutoff?recentTracked:cutoff;
+      var cursor=new Date(gapStart);
+      cursor.setDate(cursor.getDate()+1);
       var hadGaps=false;
       while(cursor<todayD){
         var ds=cursor.toDateString();
         if(!byDate[ds]){
+          // Only add to local allDays — write to DB only if not already there
           allDays.push({date:ds,cap:defaultCap,receipts:[]});
+          byDate[ds]={date:ds,cap:defaultCap,receipts:[]};
           api('POST','receipts',{date:ds,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
           hadGaps=true;
         }
