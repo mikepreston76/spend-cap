@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -250,7 +249,6 @@ function saveDefaultCap(v){
   api('PATCH','settings?key=eq.default_cap',{value:String(v),updated_at:new Date().toISOString()}).catch(function(){});
 }
 
-// Compute past-days-only running balance
 function getRunningBalance(){
   var pastDays=allDays.filter(function(d){return d.date!==TODAY;});
   if(resetAnchor) pastDays=pastDays.filter(function(d){return new Date(d.date)>=resetAnchor;});
@@ -260,10 +258,9 @@ function getRunningBalance(){
   },0);
 }
 
-// Effective cap = base cap + running balance
 function effectiveCap(){
   if(todayCap===null) return 0;
-  return Math.max(todayCap + getRunningBalance(), 0);
+  return Math.max(todayCap+getRunningBalance(),0);
 }
 
 window.switchTab=function(name){
@@ -287,12 +284,13 @@ function loadAll(){
     }
     var byDate={};
     rows.forEach(function(r){
-      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:r.cap,receipts:[]};
-      byDate[r.date].cap=r.cap;
-      if(r.amount>0) byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
+      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:0,receipts:[]};
+      // Always keep the highest cap value seen — immune to row ordering
+      if(r.cap>byDate[r.date].cap) byDate[r.date].cap=r.cap;
+      // Only push real spend rows — never cap markers
+      if(r.amount>0&&r.description!=='__cap__') byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
     });
     allDays=Object.values(byDate).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-    console.log('allDays:', JSON.stringify(allDays.map(function(d){return {date:d.date,cap:d.cap,receipts:d.receipts.length};})));
     var td=byDate[TODAY];
     todayCap=td?td.cap:null;
     todayReceipts=td?td.receipts:[];
@@ -324,12 +322,10 @@ function render(){
   var pct=effCap>0?Math.min(s/effCap*100,100):100;
   var done=rem<=0;
 
-  // Gauge
   var ra=document.getElementById('rem-amt');
   ra.textContent=fmt(rem);
   ra.className='rem-amt '+(pct<60?'c-g':pct<85?'c-a':'c-r');
 
-  // Cap display — show base + adjustment if running balance != 0
   document.getElementById('cap-static').textContent=fmt(effCap);
   var baseEl=document.getElementById('cap-base');
   if(Math.abs(rb)>0.005){
@@ -389,7 +385,6 @@ window.resetRunning=function(){
   render();
 };
 
-// Calendar
 function renderCalendar(){
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-month').textContent=months[calMonth]+' '+calYear;
