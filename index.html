@@ -292,6 +292,7 @@ function loadAll(){
       if(r.amount>0) byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
     });
     allDays=Object.values(byDate).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    console.log('allDays:', JSON.stringify(allDays.map(function(d){return {date:d.date,cap:d.cap,receipts:d.receipts.length};})));
     var td=byDate[TODAY];
     todayCap=td?td.cap:null;
     todayReceipts=td?td.receipts:[];
