@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Daily Spend Cap — Finance HQ</title>
+<title>Daily Spend Cap — Peak Finance HQ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--border:#333;--gold:#c9a84c;--green:#50c878;--red:#ff6b6b;--amber:#e08c30;--white:#fff;--off:#ddd;--sub:#aaa;--mono:'Courier New',monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -120,6 +120,18 @@ input:focus{border-color:var(--gold)}
 .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.dd-add-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.dd-amt-wrap{position:relative;flex:1}
+.dd-amt-wrap .sym{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:16px;color:#c9a84c;pointer-events:none;z-index:1}
+.dd-amt-inp{background:#222;border:1px solid #333;border-radius:8px;color:#fff;font-family:var(--mono);font-size:20px;font-weight:bold;padding:12px 10px 12px 30px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;-webkit-text-fill-color:#fff}
+.dd-amt-inp::-webkit-outer-spin-button,.dd-amt-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.dd-amt-inp:focus{border-color:#c9a84c}
+.dd-log-btn{background:#c9a84c;color:#000;border:none;border-radius:8px;font-family:var(--mono);font-size:13px;font-weight:bold;padding:12px 16px;cursor:pointer;-webkit-appearance:none;flex-shrink:0}
+.dd-log-btn:active{opacity:.8}
+.dd-del{background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:2px 6px;-webkit-appearance:none;flex-shrink:0}
+.dd-del:active{color:var(--red)}
+.dd-effective{font-family:var(--mono);font-size:10px;color:var(--sub);margin-bottom:10px}
+
 </style>
 </head>
 <body>
@@ -299,6 +311,24 @@ function loadAll(){
       allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
       api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
     }
+    // Gap-fill: credit full cap for any day between first tracked day and today with no data
+    if(defaultCap!==null&&allDays.length>0){
+      var oldest=new Date(allDays[allDays.length-1].date);
+      var cursor=new Date(oldest);
+      cursor.setDate(cursor.getDate()+1);
+      var todayD=new Date(TODAY);
+      var hadGaps=false;
+      while(cursor<todayD){
+        var ds=cursor.toDateString();
+        if(!byDate[ds]){
+          allDays.push({date:ds,cap:defaultCap,receipts:[]});
+          api('POST','receipts',{date:ds,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
+          hadGaps=true;
+        }
+        cursor.setDate(cursor.getDate()+1);
+      }
+      if(hadGaps) allDays.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    }
     document.getElementById('loading').classList.add('hidden');
     render();
     try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
@@ -393,7 +423,16 @@ function renderCalendar(){
   var first=new Date(calYear,calMonth,1).getDay();
   var days=new Date(calYear,calMonth+1,0).getDate();
   var dataMap={};
-  allDays.forEach(function(d){var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);dataMap[d.date]={cap:d.cap,spent:s,delta:d.cap-s,receipts:d.receipts};});
+  // Build running balance per day (cumulative from oldest to newest)
+  var asc=allDays.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  var runningBal=0;
+  asc.forEach(function(d){
+    var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);
+    var effCap=Math.max(d.cap+runningBal,0);
+    var delta=effCap-s;
+    dataMap[d.date]={cap:d.cap,effCap:effCap,spent:s,delta:delta,runningBefore:runningBal,receipts:d.receipts};
+    runningBal+=delta;
+  });
   for(var i=0;i<first;i++){var el=document.createElement('div');el.className='cal-day empty';el.innerHTML='<span class="cal-day-num"></span>';grid.appendChild(el);}
   for(var day=1;day<=days;day++){
     var d=new Date(calYear,calMonth,day),ds=d.toDateString(),data=dataMap[ds];
@@ -413,20 +452,77 @@ function renderDayDetail(dateStr){
   var dd=document.getElementById('day-detail');
   var dayData=allDays.find(function(x){return x.date===dateStr;});
   if(!dayData){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data for this day.</div></div>';return;}
+
+  // Recompute effective cap using running balance before this day
+  var asc=allDays.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  var runBefore=0;
+  for(var i=0;i<asc.length;i++){
+    if(asc[i].date===dateStr) break;
+    var ps=asc[i].receipts.reduce(function(t,r){return t+r.amount;},0);
+    var pEff=Math.max(asc[i].cap+runBefore,0);
+    runBefore+=pEff-ps;
+  }
+  var effCap=Math.max(dayData.cap+runBefore,0);
   var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
-  var delta=dayData.cap-spent,pct=dayData.cap>0?Math.min(spent/dayData.cap*100,100):0;
+  var delta=effCap-spent;
+  var pct=effCap>0?Math.min(spent/effCap*100,100):0;
   var bc=pct<=100?'var(--green)':'var(--red)';
   var dateLabel=new Date(dateStr).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  var isPast=dateStr!==TODAY;
+
   var html='<div class="day-detail">';
   html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span class="dd-delta '+(delta>=0?'c-g':'c-r')+'">'+fmt(delta,true)+'</span></div>';
   html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
-  html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(dayData.cap)+' cap</div>';
+  if(Math.abs(runBefore)>0.5){
+    html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+(runBefore>=0?'+':'')+fmt(runBefore,true)+' balance = '+fmt(effCap)+' effective cap</div>';
+  } else {
+    html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
+  }
+  html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
   html+='<div class="dd-receipts">';
   if(!dayData.receipts.length){html+='<div class="dd-empty">No receipts logged.</div>';}
-  else{dayData.receipts.forEach(function(r){html+='<div class="dd-receipt"><span class="dd-time">'+esc(r.time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(r.amount)+'</span></div>';});}
-  html+='</div></div>';
+  else{dayData.receipts.forEach(function(r){
+    html+='<div class="dd-receipt"><span class="dd-time">'+esc(r.time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(r.amount)+'</span>';
+    if(isPast) html+='<button class="dd-del" data-id="'+r.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastReceipt(this)">×</button>';
+    html+='</div>';
+  });}
+  html+='</div>';
+  if(isPast){
+    html+='<div class="dd-add-row">';
+    html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-inp" type="number" id="dd-inp-'+esc(dateStr)+'" placeholder="0" min="1" step="1" inputmode="decimal"></div>';
+    html+='<button class="dd-log-btn" onclick="addPastReceipt(''+esc(dateStr)+'')">LOG</button>';
+    html+='</div>';
+  }
+  html+='</div>';
   dd.innerHTML=html;
 }
+
+window.addPastReceipt=function(dateStr){
+  var inp=document.getElementById('dd-inp-'+dateStr);
+  if(!inp) return;
+  var amt=parseFloat(inp.value);
+  if(!amt||amt<=0){inp.style.borderColor='var(--red)';setTimeout(function(){inp.style.borderColor='';},700);return;}
+  var dayData=allDays.find(function(x){return x.date===dateStr;});
+  if(!dayData) return;
+  inp.value='';
+  api('POST','receipts',{date:dateStr,cap:dayData.cap,description:null,amount:amt}).then(function(rows){
+    var row=Array.isArray(rows)?rows[0]:rows;
+    var time=new Date(row.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    dayData.receipts.push({id:row.id,amount:amt,time:time});
+    renderCalendar();
+  }).catch(function(){});
+};
+
+window.deletePastReceipt=function(btn){
+  var id=btn.getAttribute('data-id');
+  var dateStr=btn.getAttribute('data-date');
+  if(!confirm('Delete this receipt?')) return;
+  api('DELETE','receipts?id=eq.'+id).then(function(){
+    var dayData=allDays.find(function(x){return x.date===dateStr;});
+    if(dayData) dayData.receipts=dayData.receipts.filter(function(r){return r.id!==id;});
+    renderCalendar();
+  }).catch(function(){});
+};
 
 window.calPrev=function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
 window.calNext=function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
