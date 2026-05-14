@@ -489,7 +489,7 @@ function renderDayDetail(dateStr){
   html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span class="dd-delta '+(delta>=0?'c-g':'c-r')+'">'+fmt(delta,true)+'</span></div>';
   html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
   if(Math.abs(runBefore)>0.5){
-    html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+(runBefore>=0?'+':'')+fmt(runBefore,true)+' balance = '+fmt(effCap)+' effective cap</div>';
+html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+fmt(runBefore,true)+' balance = '+fmt(effCap)+' effective cap</div>';
   } else {
     html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
   }
