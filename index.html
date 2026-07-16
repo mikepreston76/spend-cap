@@ -20,7 +20,7 @@ body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:
 .inp-wrap{position:relative;flex:1}
 .inp-wrap .sym{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:18px;color:var(--gold);pointer-events:none;z-index:1}
 input[type=number],input[type=text]{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:var(--mono);font-size:17px;padding:14px 12px 14px 36px;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s}
-  .big-amt-inp{background:#222222 !important;border:1px solid #333333 !important;border-radius:10px;color:#ffffff !important;font-family:var(--mono);font-size:48px !important;font-weight:bold;padding:28px 14px 28px 56px !important;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff !important}
+.big-amt-inp{background:#222222 !important;border:1px solid #333333 !important;border-radius:10px;color:#ffffff !important;font-family:var(--mono);font-size:48px !important;font-weight:bold;padding:28px 14px 28px 56px !important;width:100%;outline:none;-moz-appearance:textfield;appearance:textfield;transition:border-color .15s;-webkit-text-fill-color:#ffffff !important}
 input::placeholder{color:#555}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 input:focus{border-color:var(--gold)}
@@ -131,505 +131,469 @@ input:focus{border-color:var(--gold)}
 .dd-del{background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:2px 6px;-webkit-appearance:none;flex-shrink:0}
 .dd-del:active{color:var(--red)}
 .dd-effective{font-family:var(--mono);font-size:10px;color:var(--sub);margin-bottom:10px}
-
 </style>
 </head>
 <body>
-
 <div class="loading-overlay" id="loading">
-  <div class="loading-logo">Peak Finance HQ</div>
-  <div class="spinner"></div>
-  <div class="loading-msg" id="loading-msg">Connecting...</div>
+<div class="loading-logo">Peak Finance HQ</div>
+<div class="spinner"></div>
+<div class="loading-msg" id="loading-msg">Connecting...</div>
 </div>
-
 <div class="app-header">
-  <span class="logo">Peak Finance HQ</span>
-  <div class="header-right">
-    <span class="date-lbl" id="date-lbl"></span>
-  </div>
+<span class="logo">Peak Finance HQ</span>
+<div class="header-right">
+<span class="date-lbl" id="date-lbl"></span>
 </div>
-
+</div>
 <div class="tab-bar">
-  <button class="tab active" onclick="switchTab('today')">Today</button>
-  <button class="tab" onclick="switchTab('calendar')">Calendar</button>
+<button class="tab active" onclick="switchTab('today')">Today</button>
+<button class="tab" onclick="switchTab('calendar')">Calendar</button>
 </div>
-
 <!-- TODAY -->
-
 <div class="tab-content active" id="tab-today">
-  <div id="cap-setup">
-    <div class="lbl">Set Daily Cap <span id="cap-setup-note" style="font-size:10px;color:var(--sub);letter-spacing:.05em;font-weight:normal;text-transform:none"></span></div>
-    <div class="cap-row">
-      <div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
-      <button class="btn" onclick="setCap()">SET CAP</button>
-    </div>
-  </div>
-
-  <div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
-
-  <div id="gauge-section">
-    <div class="gauge-card">
-      <div class="gauge-top">
-        <div>
-          <div class="rem-lbl">Remaining Today</div>
-          <div class="rem-amt c-g" id="rem-amt">$0.00</div>
-        </div>
-        <div class="cap-info">
-          <div class="cap-info-lbl">Today's Cap</div>
-          <div class="cap-base" id="cap-base"></div>
-          <span class="cap-effective" id="cap-static" onclick="startCapEdit()">$0.00</span>
-          <div class="cap-hint" id="cap-hint">Tap to edit base</div>
-          <div class="cap-edit-row" id="cap-edit-row">
-            <div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
-            <button class="cap-ok" onclick="confirmCapEdit()">OK</button>
-            <button class="cap-x" onclick="cancelCapEdit()">✕</button>
-          </div>
-        </div>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
-      <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
-    </div>
-  </div>
-
-  <!-- RUNNING BALANCE — past days only -->
-
-  <div id="running-card">
-    <div class="running-inner">
-      <div>
-        <div class="rl-lbl">Running Balance</div>
-        <div class="rl-val" id="rl-val">+$0.00</div>
-      </div>
-      <div class="running-right">
-        <div class="rl-since" id="rl-since"></div>
-        <button class="rl-reset" onclick="resetRunning()">RESET</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="receipt-section">
-    <div class="receipt-card">
-      <div class="big-amt-wrap">
-        <span class="sym" style="font-size:40px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
-        <input class="big-amt-inp" type="number" id="r-amt" placeholder="0" min="0.01" step="0.01" inputmode="decimal">
-      </div>
-      <button class="log-btn" onclick="addReceipt()">LOG</button>
-    </div>
-  </div>
-
-  <div id="log-section">
-    <div class="log-hdr"><div class="lbl" style="margin:0">Today's Receipts</div><button class="btn ghost" onclick="clearToday()">CLEAR ALL</button></div>
-    <div class="receipt-list" id="receipt-list"></div>
-  </div>
+<div id="cap-setup">
+<div class="lbl">Set Daily Cap <span id="cap-setup-note" style="font-size:10px;color:var(--sub);letter-spacing:.05em;font-weight:normal;text-transform:none"></span></div>
+<div class="cap-row">
+<div class="inp-wrap"><span class="sym">$</span><input type="number" id="cap-input" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
+<button class="btn" onclick="setCap()">SET CAP</button>
 </div>
-
+</div>
+<div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
+<div id="gauge-section">
+<div class="gauge-card">
+<div class="gauge-top">
+<div>
+<div class="rem-lbl">Remaining Today</div>
+<div class="rem-amt c-g" id="rem-amt">$0.00</div>
+</div>
+<div class="cap-info">
+<div class="cap-info-lbl">Today's Cap</div>
+<div class="cap-base" id="cap-base"></div>
+<span class="cap-effective" id="cap-static" onclick="startCapEdit()">$0.00</span>
+<div class="cap-hint" id="cap-hint">Tap to edit base</div>
+<div class="cap-edit-row" id="cap-edit-row">
+<div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
+<button class="cap-ok" onclick="confirmCapEdit()">OK</button>
+<button class="cap-x" onclick="cancelCapEdit()">✕</button>
+</div>
+</div>
+</div>
+<div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
+<div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
+</div>
+</div>
+<!-- RUNNING BALANCE — past days only -->
+<div id="running-card">
+<div class="running-inner">
+<div>
+<div class="rl-lbl">Running Balance</div>
+<div class="rl-val" id="rl-val">+$0.00</div>
+</div>
+<div class="running-right">
+<div class="rl-since" id="rl-since"></div>
+<button class="rl-reset" onclick="resetRunning()">RESET</button>
+</div>
+</div>
+</div>
+<div id="receipt-section">
+<div class="receipt-card">
+<div class="big-amt-wrap">
+<span class="sym" style="font-size:40px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
+<input class="big-amt-inp" type="number" id="r-amt" placeholder="0" min="0.01" step="0.01" inputmode="decimal">
+</div>
+<button class="log-btn" onclick="addReceipt()">LOG</button>
+</div>
+</div>
+<div id="log-section">
+<div class="log-hdr"><div class="lbl" style="margin:0">Today's Receipts</div><button class="btn ghost" onclick="clearToday()">CLEAR ALL</button></div>
+<div class="receipt-list" id="receipt-list"></div>
+</div>
+</div>
 <!-- CALENDAR -->
-
 <div class="tab-content" id="tab-calendar">
-  <div class="cal-nav">
-    <button class="cal-arrow" onclick="calPrev()">‹</button>
-    <span class="cal-month" id="cal-month"></span>
-    <button class="cal-arrow" onclick="calNext()">›</button>
-  </div>
-  <div class="cal-grid" id="cal-grid"></div>
-  <div id="day-detail"></div>
+<div class="cal-nav">
+<button class="cal-arrow" onclick="calPrev()">‹</button>
+<span class="cal-month" id="cal-month"></span>
+<button class="cal-arrow" onclick="calNext()">›</button>
 </div>
-
+<div class="cal-grid" id="cal-grid"></div>
+<div id="day-detail"></div>
+</div>
 <script>
 var SUPA_URL='https://fnkwmbvdinextbfvyzoe.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZua3dtYnZkaW5leHRiZnZ5em9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDMzNDgsImV4cCI6MjA5MjgxOTM0OH0.qFbl_zp_Uf700yyAVVV-xqLSafMfReFhHT54tnuMrQo';
-
-var TODAY=new Date().toDateString();
+var TODAY=isoDate(new Date());
+function pad2(n){return n<10?'0'+n:''+n;}
+function isoDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function parseISO(s){var p=s.split('-');return new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10));}
 var todayCap=null,todayReceipts=[],allDays=[];
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),selectedDate=null;
 var RESET_KEY='pfhq_running_reset',CAP_KEY='pfhq_default_cap';
 var resetAnchor=null,defaultCap=null;
-
 document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 try{var _ra=localStorage.getItem(RESET_KEY);resetAnchor=_ra?new Date(_ra):null;}catch(e){}
 try{var _dc=localStorage.getItem(CAP_KEY);defaultCap=_dc?parseFloat(_dc):null;}catch(e){}
-
 function api(method,path,body){
-  var opts={method:method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':''}};
-  if(body) opts.body=JSON.stringify(body);
-  return fetch(SUPA_URL+'/rest/v1/'+path,opts).then(function(r){
-    if(!r.ok) return r.text().then(function(t){throw new Error(t);});
-    return r.status===204?null:r.json();
-  });
+var opts={method:method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'}};
+if(body) opts.body=JSON.stringify(body);
+return fetch(SUPA_URL+'/rest/v1/'+path,opts).then(function(r){
+if(!r.ok) return r.text().then(function(t){throw new Error(t);});
+return r.status===204?null:r.json();
+});
 }
-
+function saveSetting(key,value){
+// Upsert: try PATCH first (row already exists), fall back to POST if nothing matched
+return api('PATCH','settings?key=eq.'+key,{value:String(value),updated_at:new Date().toISOString()}).then(function(rows){
+if(!rows||rows.length===0){
+return api('POST','settings',{key:key,value:String(value),updated_at:new Date().toISOString()});
+}
+return rows;
+});
+}
 function saveDefaultCap(v){
-  api('PATCH','settings?key=eq.default_cap',{value:String(v),updated_at:new Date().toISOString()}).catch(function(){});
+saveSetting('default_cap',v).catch(function(){});
 }
-
 function getRunningBalance(){
-  var todayD=new Date(TODAY);
-  var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
-  var pastDays=allDays.filter(function(d){
-    var dd=new Date(d.date);
-    return d.date!==TODAY&&dd>=cutoff;
-  });
-  if(resetAnchor) pastDays=pastDays.filter(function(d){return new Date(d.date)>=resetAnchor;});
-  return pastDays.reduce(function(t,d){
-    var s=d.receipts.reduce(function(a,r){return a+r.amount;},0);
-    return t+(d.cap-s);
-  },0);
+var todayD=parseISO(TODAY);
+var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
+var pastDays=allDays.filter(function(d){
+var dd=parseISO(d.date);
+return d.date!==TODAY&&dd>=cutoff;
+});
+if(resetAnchor) pastDays=pastDays.filter(function(d){return parseISO(d.date)>=resetAnchor;});
+return pastDays.reduce(function(t,d){
+var s=d.receipts.reduce(function(a,r){return a+r.amount;},0);
+return t+(d.cap-s);
+},0);
 }
-
 function effectiveCap(){
-  if(todayCap===null) return 0;
-  return Math.max(todayCap+getRunningBalance(),0);
+if(todayCap===null) return 0;
+return Math.max(todayCap+getRunningBalance(),0);
 }
-
 window.switchTab=function(name){
-  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['today','calendar'][i]===name);});
-  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
-  document.getElementById('tab-'+name).classList.add('active');
-  if(name==='calendar') renderCalendar();
+document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['today','calendar'][i]===name);});
+document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+document.getElementById('tab-'+name).classList.add('active');
+if(name==='calendar') renderCalendar();
 };
-
 function loadAll(){
-  document.getElementById('loading-msg').textContent='Loading data...';
-  return Promise.all([
-    api('GET','receipts?order=created_at.asc&select=*'),
-    api('GET','settings?select=*')
-  ]).then(function(results){
-    var rows=results[0]||[],settings=results[1]||[];
-    var capSetting=settings.find(function(s){return s.key==='default_cap';});
-    if(capSetting&&parseFloat(capSetting.value)>0){
-      defaultCap=parseFloat(capSetting.value);
-      try{localStorage.setItem(CAP_KEY,defaultCap);}catch(e){}
-    }
-    var byDate={};
-    rows.forEach(function(r){
-      if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:0,receipts:[]};
-      // Always keep the highest cap value seen — immune to row ordering
-      if(r.cap>byDate[r.date].cap) byDate[r.date].cap=r.cap;
-      // Only push real spend rows — never cap markers
-      if(r.amount>0&&r.description!=='__cap__') byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
-    });
-    allDays=Object.values(byDate).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-    var td=byDate[TODAY];
-    todayCap=td?td.cap:null;
-    todayReceipts=td?td.receipts:[];
-    if(todayCap===null&&defaultCap!==null){
-      todayCap=defaultCap;
-      allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
-      api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
-    }
-    // Gap-fill: credit full cap for missing days since the MOST RECENT tracked day
-    // Only look back 60 days max to avoid runaway compounding
-    if(defaultCap!==null&&allDays.length>0){
-      var todayD=new Date(TODAY);
-      var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
-      // Find most recent tracked day as start point (not oldest)
-      var recentTracked=new Date(allDays[0].date); // newest first
-      var gapStart=recentTracked>cutoff?recentTracked:cutoff;
-      var cursor=new Date(gapStart);
-      cursor.setDate(cursor.getDate()+1);
-      var hadGaps=false;
-      while(cursor<todayD){
-        var ds=cursor.toDateString();
-        if(!byDate[ds]){
-          // Only add to local allDays — write to DB only if not already there
-          allDays.push({date:ds,cap:defaultCap,receipts:[]});
-          byDate[ds]={date:ds,cap:defaultCap,receipts:[]};
-          api('POST','receipts',{date:ds,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
-          hadGaps=true;
-        }
-        cursor.setDate(cursor.getDate()+1);
-      }
-      if(hadGaps) allDays.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-    }
-    document.getElementById('loading').classList.add('hidden');
-    render();
-    try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
-  }).catch(function(e){document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
+document.getElementById('loading-msg').textContent='Loading data...';
+return Promise.all([
+api('GET','receipts?order=created_at.asc&select=*'),
+api('GET','settings?select=*')
+]).then(function(results){
+var rows=results[0]||[],settings=results[1]||[];
+var capSetting=settings.find(function(s){return s.key==='default_cap';});
+if(capSetting&&parseFloat(capSetting.value)>0){
+defaultCap=parseFloat(capSetting.value);
+try{localStorage.setItem(CAP_KEY,defaultCap);}catch(e){}
 }
-
+var resetSetting=settings.find(function(s){return s.key==='running_reset_anchor';});
+if(resetSetting&&resetSetting.value){
+resetAnchor=new Date(resetSetting.value);
+try{localStorage.setItem(RESET_KEY,resetSetting.value);}catch(e){}
+}
+var byDate={};
+rows.forEach(function(r){
+if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:0,receipts:[]};
+// Always keep the highest cap value seen — immune to row ordering
+if(r.cap>byDate[r.date].cap) byDate[r.date].cap=r.cap;
+// Only push real spend rows — never cap markers
+if(r.amount>0&&r.description!=='__cap__') byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
+});
+allDays=Object.values(byDate).sort(function(a,b){return parseISO(b.date)-parseISO(a.date);});
+var td=byDate[TODAY];
+todayCap=td?td.cap:null;
+todayReceipts=td?td.receipts:[];
+if(todayCap===null&&defaultCap!==null){
+todayCap=defaultCap;
+allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
+api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
+}
+// Gap-fill: credit full cap for missing days since the MOST RECENT tracked day
+// Only look back 60 days max to avoid runaway compounding
+if(defaultCap!==null&&allDays.length>0){
+var todayD=parseISO(TODAY);
+var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
+// Find most recent tracked day as start point (not oldest)
+var recentTracked=parseISO(allDays[0].date); // newest first
+var gapStart=recentTracked>cutoff?recentTracked:cutoff;
+var cursor=new Date(gapStart);
+cursor.setDate(cursor.getDate()+1);
+var hadGaps=false;
+while(cursor<todayD){
+var ds=isoDate(cursor);
+if(!byDate[ds]){
+// Only add to local allDays — write to DB only if not already there
+allDays.push({date:ds,cap:defaultCap,receipts:[]});
+byDate[ds]={date:ds,cap:defaultCap,receipts:[]};
+api('POST','receipts',{date:ds,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
+hadGaps=true;
+}
+cursor.setDate(cursor.getDate()+1);
+}
+if(hadGaps) allDays.sort(function(a,b){return parseISO(b.date)-parseISO(a.date);});
+}
+document.getElementById('loading').classList.add('hidden');
+render();
+try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
+}).catch(function(e){document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
+}
 function fmt(n,sign){var abs=String(Math.ceil(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
 function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
-
 function render(){
-  var has=todayCap!==null;
-  show('cap-setup',!has); show('gauge-section',has); show('receipt-section',has); show('log-section',has);
-  if(!has) return;
-
-  var rb=getRunningBalance();
-  var effCap=Math.max(todayCap+rb,0);
-  var s=totalSpent();
-  var rem=Math.max(effCap-s,0);
-  var pct=effCap>0?Math.min(s/effCap*100,100):100;
-  var done=rem<=0;
-
-  var ra=document.getElementById('rem-amt');
-  ra.textContent=fmt(rem);
-  ra.className='rem-amt '+(pct<60?'c-g':pct<85?'c-a':'c-r');
-
-  document.getElementById('cap-static').textContent=fmt(effCap);
-  var baseEl=document.getElementById('cap-base');
-  if(Math.abs(rb)>0.005){
-    baseEl.textContent=fmt(todayCap)+fmt(rb,true);
-  } else {
-    baseEl.textContent='';
-  }
-
-  document.getElementById('spent-lbl').textContent=fmt(s)+' spent';
-  document.getElementById('cap-end-lbl').textContent=fmt(effCap);
-
-  var bar=document.getElementById('prog-bar');
-  bar.style.width=pct+'%';
-  bar.style.background=pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
-
-  show('done-banner',done);
-  var rs=document.getElementById('receipt-section');
-  rs.style.opacity=done?'0.3':'1';
-  rs.style.pointerEvents=done?'none':'';
-
-  renderReceipts();
-  renderRunning(rb);
+var has=todayCap!==null;
+show('cap-setup',!has); show('gauge-section',has); show('receipt-section',has); show('log-section',has);
+if(!has) return;
+var rb=getRunningBalance();
+var effCap=Math.max(todayCap+rb,0);
+var s=totalSpent();
+var rem=Math.max(effCap-s,0);
+var pct=effCap>0?Math.min(s/effCap*100,100):100;
+var done=rem<=0;
+var ra=document.getElementById('rem-amt');
+ra.textContent=fmt(rem);
+ra.className='rem-amt '+(pct<60?'c-g':pct<85?'c-a':'c-r');
+document.getElementById('cap-static').textContent=fmt(effCap);
+var baseEl=document.getElementById('cap-base');
+if(Math.abs(rb)>0.005){
+baseEl.textContent=fmt(todayCap)+fmt(rb,true);
+} else {
+baseEl.textContent='';
 }
-
+document.getElementById('spent-lbl').textContent=fmt(s)+' spent';
+document.getElementById('cap-end-lbl').textContent=fmt(effCap);
+var bar=document.getElementById('prog-bar');
+bar.style.width=pct+'%';
+bar.style.background=pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
+show('done-banner',done);
+var rs=document.getElementById('receipt-section');
+rs.style.opacity=done?'0.3':'1';
+rs.style.pointerEvents=done?'none':'';
+renderReceipts();
+renderRunning(rb);
+}
 function renderReceipts(){
-  var list=document.getElementById('receipt-list');
-  if(todayReceipts.length===0){list.innerHTML='<div class="empty-state">NO RECEIPTS YET</div>';return;}
-  list.innerHTML='';
-  var rev=todayReceipts.slice().reverse();
-  for(var i=0;i<rev.length;i++){
-    var r=rev[i],d=document.createElement('div');
-    d.className='receipt-item';
-    d.innerHTML='<span class="ri-time">'+esc(r.time)+'</span><span class="ri-amt" style="flex:1;text-align:right;margin-right:10px">\u2212'+fmt(r.amount)+'</span><button class="ri-del" data-id="'+r.id+'">\u00d7</button>';
-    list.appendChild(d);
-  }
-  list.querySelectorAll('.ri-del').forEach(function(btn){
-    btn.addEventListener('click',function(){deleteReceipt(this.getAttribute('data-id'));});
-  });
+var list=document.getElementById('receipt-list');
+if(todayReceipts.length===0){list.innerHTML='<div class="empty-state">NO RECEIPTS YET</div>';return;}
+list.innerHTML='';
+var rev=todayReceipts.slice().reverse();
+for(var i=0;i<rev.length;i++){
+var r=rev[i],d=document.createElement('div');
+d.className='receipt-item';
+d.innerHTML='<span class="ri-time">'+esc(r.time)+'</span><span class="ri-amt" style="flex:1;text-align:right;margin-right:10px">\u2212'+fmt(r.amount)+'</span><button class="ri-del" data-id="'+r.id+'">\u00d7</button>';
+list.appendChild(d);
 }
-
+list.querySelectorAll('.ri-del').forEach(function(btn){
+btn.addEventListener('click',function(){deleteReceipt(this.getAttribute('data-id'));});
+});
+}
 function renderRunning(rb){
-  var rc=document.getElementById('running-card');
-  rc.style.display='block';
-  var el=document.getElementById('rl-val');
-  el.textContent=fmt(rb,true);
-  el.className='rl-val '+(rb>=0?'c-g':'c-r');
-  var sinceEl=document.getElementById('rl-since');
-  if(resetAnchor) sinceEl.textContent='since '+resetAnchor.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  else sinceEl.textContent=allDays.filter(function(d){return d.date!==TODAY;}).length>0?'all-time':'first day';
+var rc=document.getElementById('running-card');
+rc.style.display='block';
+var el=document.getElementById('rl-val');
+el.textContent=fmt(rb,true);
+el.className='rl-val '+(rb>=0?'c-g':'c-r');
+var sinceEl=document.getElementById('rl-since');
+if(resetAnchor) sinceEl.textContent='since '+resetAnchor.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+else sinceEl.textContent=allDays.filter(function(d){return d.date!==TODAY;}).length>0?'all-time':'first day';
 }
-
 window.resetRunning=function(){
-  if(!confirm('Reset running balance to zero from today?')) return;
-  var now=new Date();
-  resetAnchor=now;
-  try{localStorage.setItem(RESET_KEY,now.toISOString());}catch(e){}
-  render();
+if(!confirm('Reset running balance to zero from today?')) return;
+var now=new Date();
+resetAnchor=now;
+try{localStorage.setItem(RESET_KEY,now.toISOString());}catch(e){}
+saveSetting('running_reset_anchor',now.toISOString()).catch(function(){});
+render();
 };
-
 function renderCalendar(){
-  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-month').textContent=months[calMonth]+' '+calYear;
-  var grid=document.getElementById('cal-grid'); grid.innerHTML='';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function(d){var el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
-  var first=new Date(calYear,calMonth,1).getDay();
-  var days=new Date(calYear,calMonth+1,0).getDate();
-  var dataMap={};
-  // Build running balance per day (cumulative from oldest to newest)
-  var asc=allDays.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
-  var runningBal=0;
-  asc.forEach(function(d){
-    var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);
-    var effCap=Math.max(d.cap+runningBal,0);
-    var delta=effCap-s;
-    dataMap[d.date]={cap:d.cap,effCap:effCap,spent:s,delta:delta,runningBefore:runningBal,receipts:d.receipts};
-    runningBal+=delta;
-  });
-  for(var i=0;i<first;i++){var el=document.createElement('div');el.className='cal-day empty';el.innerHTML='<span class="cal-day-num"></span>';grid.appendChild(el);}
-  for(var day=1;day<=days;day++){
-    var d=new Date(calYear,calMonth,day),ds=d.toDateString(),data=dataMap[ds];
-    var isToday=ds===TODAY,isSel=ds===selectedDate;
-    var el=document.createElement('div');
-    el.className='cal-day'+(data?' has-data':'')+(isToday?' today':'')+(isSel?' selected':'');
-    var pipColor=data?(data.delta>=0?'var(--green)':'var(--red)'):'transparent';
-    el.innerHTML='<span class="cal-day-num">'+day+'</span>'+(data?'<div class="cal-pip" style="background:'+pipColor+'"></div>':'');
-    if(data||isToday)(function(dateStr){el.addEventListener('click',function(){selectedDate=dateStr;renderCalendar();renderDayDetail(dateStr);});})(ds);
-    grid.appendChild(el);
-  }
-  if(selectedDate) renderDayDetail(selectedDate);
-  else document.getElementById('day-detail').innerHTML='';
+var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+document.getElementById('cal-month').textContent=months[calMonth]+' '+calYear;
+var grid=document.getElementById('cal-grid'); grid.innerHTML='';
+['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function(d){var el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
+var first=new Date(calYear,calMonth,1).getDay();
+var days=new Date(calYear,calMonth+1,0).getDate();
+var dataMap={};
+// Build running balance per day (cumulative from oldest to newest)
+var asc=allDays.slice().sort(function(a,b){return parseISO(a.date)-parseISO(b.date);});
+var runningBal=0;
+asc.forEach(function(d){
+var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);
+var effCap=Math.max(d.cap+runningBal,0);
+var delta=d.cap-s;
+dataMap[d.date]={cap:d.cap,effCap:effCap,spent:s,delta:delta,runningBefore:runningBal,receipts:d.receipts};
+runningBal+=delta;
+});
+for(var i=0;i<first;i++){var el=document.createElement('div');el.className='cal-day empty';el.innerHTML='<span class="cal-day-num"></span>';grid.appendChild(el);}
+for(var day=1;day<=days;day++){
+var d=new Date(calYear,calMonth,day),ds=isoDate(d),data=dataMap[ds];
+var isToday=ds===TODAY,isSel=ds===selectedDate;
+var el=document.createElement('div');
+el.className='cal-day'+(data?' has-data':'')+(isToday?' today':'')+(isSel?' selected':'');
+var pipColor=data?(data.delta>=0?'var(--green)':'var(--red)'):'transparent';
+el.innerHTML='<span class="cal-day-num">'+day+'</span>'+(data?'<div class="cal-pip" style="background:'+pipColor+'"></div>':'');
+if(data||isToday)(function(dateStr){el.addEventListener('click',function(){selectedDate=dateStr;renderCalendar();renderDayDetail(dateStr);});})(ds);
+grid.appendChild(el);
 }
-
+if(selectedDate) renderDayDetail(selectedDate);
+else document.getElementById('day-detail').innerHTML='';
+}
 function renderDayDetail(dateStr){
-  var dd=document.getElementById('day-detail');
-  var dayData=allDays.find(function(x){return x.date===dateStr;});
-  if(!dayData){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data for this day.</div></div>';return;}
-
-  // Recompute effective cap using running balance before this day
-  // Only use days within 60 days of the selected date to avoid phantom compounding
-  var targetDate=new Date(dateStr);
-  var cutoff=new Date(targetDate); cutoff.setDate(cutoff.getDate()-60);
-  var asc=allDays.slice()
-    .filter(function(d){var dd=new Date(d.date);return dd>=cutoff&&dd<targetDate;})
-    .sort(function(a,b){return new Date(a.date)-new Date(b.date);});
-  var runBefore=0;
-  for(var i=0;i<asc.length;i++){
-    var ps=asc[i].receipts.reduce(function(t,r){return t+r.amount;},0);
-    // Delta = base cap - spent (not effective cap - spent, to avoid exponential compounding)
-    runBefore+=asc[i].cap-ps;
-  }
-  var effCap=Math.max(dayData.cap+runBefore,0);
-  var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
-  var delta=effCap-spent;
-  var pct=effCap>0?Math.min(spent/effCap*100,100):0;
-  var bc=pct<=100?'var(--green)':'var(--red)';
-  var dateLabel=new Date(dateStr).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  var isPast=dateStr!==TODAY;
-
-  var html='<div class="day-detail">';
-  html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span class="dd-delta '+(delta>=0?'c-g':'c-r')+'">'+fmt(delta,true)+'</span></div>';
-  html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
-  if(Math.abs(runBefore)>0.5){
-html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+fmt(runBefore,true)+' balance = '+fmt(effCap)+' effective cap</div>';
-  } else {
-    html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
-  }
-  html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
-  html+='<div class="dd-receipts">';
-  if(!dayData.receipts.length){html+='<div class="dd-empty">No receipts logged.</div>';}
-  else{dayData.receipts.forEach(function(r){
-    html+='<div class="dd-receipt"><span class="dd-time">'+esc(r.time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(r.amount)+'</span>';
-    if(isPast) html+='<button class="dd-del" data-id="'+r.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastReceipt(this)">×</button>';
-    html+='</div>';
-  });}
-  html+='</div>';
-  if(isPast){
-    html+='<div class="dd-add-row">';
-    html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-inp" type="number" id="dd-inp-'+esc(dateStr)+'" placeholder="0" min="1" step="1" inputmode="decimal"></div>';
-    html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastReceipt(this)">LOG</button>';
-    html+='</div>';
-  }
-  html+='</div>';
-  dd.innerHTML=html;
+var dd=document.getElementById('day-detail');
+var dayData=allDays.find(function(x){return x.date===dateStr;});
+if(!dayData){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data for this day.</div></div>';return;}
+// Recompute effective cap using running balance before this day
+// Only use days within 60 days of the selected date to avoid phantom compounding
+var targetDate=parseISO(dateStr);
+var cutoff=new Date(targetDate); cutoff.setDate(cutoff.getDate()-60);
+var asc=allDays.slice()
+.filter(function(d){var dd=parseISO(d.date);return dd>=cutoff&&dd<targetDate;})
+.sort(function(a,b){return parseISO(a.date)-parseISO(b.date);});
+var runBefore=0;
+for(var i=0;i<asc.length;i++){
+var ps=asc[i].receipts.reduce(function(t,r){return t+r.amount;},0);
+// Delta = base cap - spent (not effective cap - spent, to avoid exponential compounding)
+runBefore+=asc[i].cap-ps;
 }
-
+var effCap=Math.max(dayData.cap+runBefore,0);
+var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
+var delta=effCap-spent;
+var pct=effCap>0?Math.min(spent/effCap*100,100):0;
+var bc=pct<=100?'var(--green)':'var(--red)';
+var dateLabel=parseISO(dateStr).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+var isPast=dateStr!==TODAY;
+var html='<div class="day-detail">';
+html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span class="dd-delta '+(delta>=0?'c-g':'c-r')+'">'+fmt(delta,true)+'</span></div>';
+html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
+if(Math.abs(runBefore)>0.5){
+html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+fmt(runBefore,true)+' balance = '+fmt(effCap)+' effective cap</div>';
+} else {
+html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
+}
+html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
+html+='<div class="dd-receipts">';
+if(!dayData.receipts.length){html+='<div class="dd-empty">No receipts logged.</div>';}
+else{dayData.receipts.forEach(function(r){
+html+='<div class="dd-receipt"><span class="dd-time">'+esc(r.time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(r.amount)+'</span>';
+if(isPast) html+='<button class="dd-del" data-id="'+r.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastReceipt(this)">×</button>';
+html+='</div>';
+});}
+html+='</div>';
+if(isPast){
+html+='<div class="dd-add-row">';
+html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-inp" type="number" id="dd-inp-'+esc(dateStr)+'" placeholder="0" min="1" step="1" inputmode="decimal"></div>';
+html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastReceipt(this)">LOG</button>';
+html+='</div>';
+}
+html+='</div>';
+dd.innerHTML=html;
+}
 window.addPastReceipt=function(btnOrDate){
-  var dateStr=typeof btnOrDate==='string'?btnOrDate:btnOrDate.getAttribute('data-date');
-  var inp=document.getElementById('dd-inp-'+dateStr);
-  if(!inp) return;
-  var amt=parseFloat(inp.value);
-  if(!amt||amt<=0){inp.style.borderColor='var(--red)';setTimeout(function(){inp.style.borderColor='';},700);return;}
-  var dayData=allDays.find(function(x){return x.date===dateStr;});
-  if(!dayData) return;
-  inp.value='';
-  api('POST','receipts',{date:dateStr,cap:dayData.cap,description:null,amount:amt}).then(function(rows){
-    var row=Array.isArray(rows)?rows[0]:rows;
-    var time=new Date(row.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    dayData.receipts.push({id:row.id,amount:amt,time:time});
-    renderCalendar();
-  }).catch(function(){});
+var dateStr=typeof btnOrDate==='string'?btnOrDate:btnOrDate.getAttribute('data-date');
+var inp=document.getElementById('dd-inp-'+dateStr);
+if(!inp) return;
+var amt=parseFloat(inp.value);
+if(!amt||amt<=0){inp.style.borderColor='var(--red)';setTimeout(function(){inp.style.borderColor='';},700);return;}
+var dayData=allDays.find(function(x){return x.date===dateStr;});
+if(!dayData) return;
+inp.value='';
+api('POST','receipts',{date:dateStr,cap:dayData.cap,description:null,amount:amt}).then(function(rows){
+var row=Array.isArray(rows)?rows[0]:rows;
+var time=new Date(row.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+dayData.receipts.push({id:row.id,amount:amt,time:time});
+renderCalendar();
+}).catch(function(){});
 };
-
 window.deletePastReceipt=function(btn){
-  var id=btn.getAttribute('data-id');
-  var dateStr=btn.getAttribute('data-date');
-  if(!confirm('Delete this receipt?')) return;
-  api('DELETE','receipts?id=eq.'+id).then(function(){
-    var dayData=allDays.find(function(x){return x.date===dateStr;});
-    if(dayData) dayData.receipts=dayData.receipts.filter(function(r){return r.id!==id;});
-    renderCalendar();
-  }).catch(function(){});
+var id=btn.getAttribute('data-id');
+var dateStr=btn.getAttribute('data-date');
+if(!confirm('Delete this receipt?')) return;
+api('DELETE','receipts?id=eq.'+id).then(function(){
+var dayData=allDays.find(function(x){return x.date===dateStr;});
+if(dayData) dayData.receipts=dayData.receipts.filter(function(r){return r.id!==id;});
+renderCalendar();
+}).catch(function(){});
 };
-
 window.calPrev=function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
 window.calNext=function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
-
 window.setCap=function(){
-  var v=parseFloat(document.getElementById('cap-input').value);
-  if(!v||v<=0){shake('cap-input');return;}
-  todayCap=v;todayReceipts=[];defaultCap=v;
-  try{localStorage.setItem(CAP_KEY,v);}catch(e){}
-  saveDefaultCap(v);
-  api('POST','receipts',{date:TODAY,cap:v,description:'__cap__',amount:0}).then(function(){
-    allDays=allDays.filter(function(d){return d.date!==TODAY;});
-    allDays.unshift({date:TODAY,cap:v,receipts:[]});
-    render();
-  }).catch(function(){});
+var v=parseFloat(document.getElementById('cap-input').value);
+if(!v||v<=0){shake('cap-input');return;}
+todayCap=v;todayReceipts=[];defaultCap=v;
+try{localStorage.setItem(CAP_KEY,v);}catch(e){}
+saveDefaultCap(v);
+api('POST','receipts',{date:TODAY,cap:v,description:'__cap__',amount:0}).then(function(){
+allDays=allDays.filter(function(d){return d.date!==TODAY;});
+allDays.unshift({date:TODAY,cap:v,receipts:[]});
+render();
+}).catch(function(){});
 };
-
 window.addReceipt=function(){
-  var amt=parseFloat(document.getElementById('r-amt').value);
-  if(!amt||amt<=0){shake('r-amt');return;}
-  document.getElementById('r-amt').value='';
-  document.getElementById('r-amt').focus();
-  api('POST','receipts',{date:TODAY,cap:todayCap,description:null,amount:amt}).then(function(rows){
-    var row=Array.isArray(rows)?rows[0]:rows;
-    var time=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    todayReceipts.push({id:row.id,amount:amt,time:time});
-    var td=allDays.find(function(d){return d.date===TODAY;});
-    if(td) td.receipts=todayReceipts.slice();
-    render();
-  }).catch(function(){});
+var amt=parseFloat(document.getElementById('r-amt').value);
+if(!amt||amt<=0){shake('r-amt');return;}
+document.getElementById('r-amt').value='';
+document.getElementById('r-amt').focus();
+api('POST','receipts',{date:TODAY,cap:todayCap,description:null,amount:amt}).then(function(rows){
+var row=Array.isArray(rows)?rows[0]:rows;
+var time=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+todayReceipts.push({id:row.id,amount:amt,time:time});
+var td=allDays.find(function(d){return d.date===TODAY;});
+if(td) td.receipts=todayReceipts.slice();
+render();
+}).catch(function(){});
 };
-
 function deleteReceipt(id){
-  api('DELETE','receipts?id=eq.'+id).then(function(){
-    todayReceipts=todayReceipts.filter(function(r){return r.id!==id;});
-    var td=allDays.find(function(d){return d.date===TODAY;});
-    if(td) td.receipts=todayReceipts.slice();
-    render();
-  }).catch(function(){});
+api('DELETE','receipts?id=eq.'+id).then(function(){
+todayReceipts=todayReceipts.filter(function(r){return r.id!==id;});
+var td=allDays.find(function(d){return d.date===TODAY;});
+if(td) td.receipts=todayReceipts.slice();
+render();
+}).catch(function(){});
 }
-
 window.clearToday=function(){
-  if(!confirm('Clear all receipts for today?')) return;
-  api('DELETE','receipts?date=eq.'+encodeURIComponent(TODAY)+'&amount=gt.0').then(function(){
-    todayReceipts=[];
-    var td=allDays.find(function(d){return d.date===TODAY;});
-    if(td) td.receipts=[];
-    render();
-  }).catch(function(){});
+if(!confirm('Clear all receipts for today?')) return;
+api('DELETE','receipts?date=eq.'+encodeURIComponent(TODAY)+'&amount=gt.0').then(function(){
+todayReceipts=[];
+var td=allDays.find(function(d){return d.date===TODAY;});
+if(td) td.receipts=[];
+render();
+}).catch(function(){});
 };
-
 window.startCapEdit=function(){
-  document.getElementById('cap-static').style.display='none';
-  document.getElementById('cap-hint').style.display='none';
-  document.getElementById('cap-base').style.display='none';
-  document.getElementById('cap-edit-row').classList.add('on');
-  var inp=document.getElementById('cap-edit-inp');
-  inp.value=todayCap?todayCap.toFixed(2):'';
-  inp.focus();inp.select();
+document.getElementById('cap-static').style.display='none';
+document.getElementById('cap-hint').style.display='none';
+document.getElementById('cap-base').style.display='none';
+document.getElementById('cap-edit-row').classList.add('on');
+var inp=document.getElementById('cap-edit-inp');
+inp.value=todayCap?todayCap.toFixed(2):'';
+inp.focus();inp.select();
 };
-
 window.confirmCapEdit=function(){
-  var v=parseFloat(document.getElementById('cap-edit-inp').value);
-  if(!v||v<=0){shake('cap-edit-inp');return;}
-  todayCap=v;defaultCap=v;
-  try{localStorage.setItem(CAP_KEY,v);}catch(e){}
-  saveDefaultCap(v);
-  cancelCapEdit();
-  api('PATCH','receipts?date=eq.'+encodeURIComponent(TODAY),{cap:v}).then(function(){
-    var td=allDays.find(function(d){return d.date===TODAY;});
-    if(td) td.cap=v;
-    render();
-  }).catch(function(){});
+var v=parseFloat(document.getElementById('cap-edit-inp').value);
+if(!v||v<=0){shake('cap-edit-inp');return;}
+todayCap=v;defaultCap=v;
+try{localStorage.setItem(CAP_KEY,v);}catch(e){}
+saveDefaultCap(v);
+cancelCapEdit();
+api('PATCH','receipts?date=eq.'+encodeURIComponent(TODAY),{cap:v}).then(function(){
+var td=allDays.find(function(d){return d.date===TODAY;});
+if(td) td.cap=v;
+render();
+}).catch(function(){});
 };
-
 window.cancelCapEdit=function(){
-  document.getElementById('cap-edit-row').classList.remove('on');
-  document.getElementById('cap-static').style.display='';
-  document.getElementById('cap-hint').style.display='';
-  document.getElementById('cap-base').style.display='';
+document.getElementById('cap-edit-row').classList.remove('on');
+document.getElementById('cap-static').style.display='';
+document.getElementById('cap-hint').style.display='';
+document.getElementById('cap-base').style.display='';
 };
-
 document.getElementById('cap-edit-inp').addEventListener('keydown',function(e){if(e.key==='Enter')confirmCapEdit();if(e.key==='Escape')cancelCapEdit();});
-
 function shake(id){var el=document.getElementById(id);el.style.borderColor='var(--red)';if(el.animate)el.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:260});setTimeout(function(){el.style.borderColor='';},700);}
-
 document.getElementById('cap-input').addEventListener('keydown',function(e){if(e.key==='Enter')setCap();});
 document.getElementById('r-amt').addEventListener('keydown',function(e){if(e.key==='Enter')addReceipt();});
-
 loadAll();
 </script>
-
 </body>
 </html>
