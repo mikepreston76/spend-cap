@@ -504,6 +504,7 @@ var row=Array.isArray(rows)?rows[0]:rows;
 var time=new Date(row.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 dayData.receipts.push({id:row.id,amount:amt,time:time});
 renderCalendar();
+render();
 }).catch(function(){});
 };
 window.deletePastReceipt=function(btn){
@@ -514,6 +515,7 @@ api('DELETE','receipts?id=eq.'+id).then(function(){
 var dayData=allDays.find(function(x){return x.date===dateStr;});
 if(dayData) dayData.receipts=dayData.receipts.filter(function(r){return r.id!==id;});
 renderCalendar();
+render();
 }).catch(function(){});
 };
 window.calPrev=function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
