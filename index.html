@@ -51,6 +51,7 @@ input:focus{border-color:var(--gold)}
 .progress-track{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:9px}
 .progress-fill{height:100%;border-radius:3px;width:0%;background:var(--green);transition:width .45s cubic-bezier(.4,0,.2,1),background .3s}
 .progress-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--off)}
+.mtd-lbl{font-family:var(--mono);font-size:11px;color:var(--sub);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 #done-banner{display:none;background:#200a0a;border:1px solid var(--red);border-radius:12px;padding:18px;text-align:center;margin-bottom:18px}
 .done-icon{font-size:28px;margin-bottom:6px}
 .done-title{font-family:var(--mono);font-size:14px;font-weight:bold;color:var(--red);letter-spacing:.1em;margin-bottom:5px}
@@ -131,6 +132,11 @@ input:focus{border-color:var(--gold)}
 .dd-del{background:none;border:none;color:#555;cursor:pointer;font-size:18px;padding:2px 6px;-webkit-appearance:none;flex-shrink:0}
 .dd-del:active{color:var(--red)}
 .dd-effective{font-family:var(--mono);font-size:10px;color:var(--sub);margin-bottom:10px}
+.range-inp{background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:var(--mono);font-size:14px;padding:11px 10px;flex:1;outline:none;color-scheme:dark}
+.range-inp:focus{border-color:var(--gold)}
+#range-result{margin-top:14px}
+.range-total{font-family:var(--mono);font-size:22px;font-weight:bold;color:var(--white);margin-bottom:3px}
+.range-sub{font-family:var(--mono);font-size:11px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -180,6 +186,7 @@ input:focus{border-color:var(--gold)}
 </div>
 <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
 <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
+<div class="mtd-lbl" id="mtd-lbl"></div>
 </div>
 </div>
 <!-- RUNNING BALANCE — past days only -->
@@ -218,6 +225,15 @@ input:focus{border-color:var(--gold)}
 </div>
 <div class="cal-grid" id="cal-grid"></div>
 <div id="day-detail"></div>
+<div class="day-detail" style="margin-top:16px">
+<div class="lbl" style="margin-bottom:12px">Spent By Date Range</div>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<input type="date" id="range-start" class="range-inp">
+<input type="date" id="range-end" class="range-inp">
+</div>
+<button class="btn" onclick="calcRange()" style="width:100%">CALCULATE</button>
+<div id="range-result"></div>
+</div>
 </div>
 <script>
 var SUPA_URL='https://fnkwmbvdinextbfvyzoe.supabase.co';
@@ -369,6 +385,15 @@ rs.style.opacity=done?'0.3':'1';
 rs.style.pointerEvents=done?'none':'';
 renderReceipts();
 renderRunning(rb);
+renderMTD();
+}
+function renderMTD(){
+var monthStart=TODAY.slice(0,8)+'01'; // first of current month, ISO
+var days=allDays.filter(function(d){return d.date>=monthStart&&d.date<=TODAY;});
+var total=0;
+days.forEach(function(d){total+=d.receipts.reduce(function(t,r){return t+r.amount;},0);});
+var monthName=parseISO(TODAY).toLocaleDateString('en-US',{month:'long'});
+document.getElementById('mtd-lbl').textContent=fmt(total)+' spent since '+monthName+' 1';
 }
 function renderReceipts(){
 var list=document.getElementById('receipt-list');
@@ -514,6 +539,19 @@ render();
 };
 window.calPrev=function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();};
 window.calNext=function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();};
+window.calcRange=function(){
+var s=document.getElementById('range-start').value;
+var e=document.getElementById('range-end').value;
+var out=document.getElementById('range-result');
+if(!s||!e){out.innerHTML='<div class="range-sub c-r">Pick a start and end date</div>';return;}
+if(s>e){out.innerHTML='<div class="range-sub c-r">Start date must be before end date</div>';return;}
+var days=allDays.filter(function(d){return d.date>=s&&d.date<=e;});
+var total=0;
+days.forEach(function(d){total+=d.receipts.reduce(function(t,r){return t+r.amount;},0);});
+var dayCount=(parseISO(e)-parseISO(s))/86400000+1;
+var avg=dayCount>0?total/dayCount:0;
+out.innerHTML='<div class="range-total">'+fmt(total)+'</div><div class="range-sub">spent over '+dayCount+' day'+(dayCount!==1?'s':'')+' &middot; avg '+fmt(avg)+'/day</div>';
+};
 window.setCap=function(){
 var v=parseFloat(document.getElementById('cap-input').value);
 if(!v||v<=0){shake('cap-input');return;}
