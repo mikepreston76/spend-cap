@@ -254,12 +254,7 @@ function saveDefaultCap(v){
 saveSetting('default_cap',v).catch(function(){});
 }
 function getRunningBalance(){
-var todayD=parseISO(TODAY);
-var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
-var pastDays=allDays.filter(function(d){
-var dd=parseISO(d.date);
-return d.date!==TODAY&&dd>=cutoff;
-});
+var pastDays=allDays.filter(function(d){return d.date!==TODAY;});
 if(resetAnchor) pastDays=pastDays.filter(function(d){return parseISO(d.date)>=resetAnchor;});
 return pastDays.reduce(function(t,d){
 var s=d.receipts.reduce(function(a,r){return a+r.amount;},0);
@@ -447,9 +442,8 @@ if(!dayData){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data
 // Recompute effective cap using running balance before this day
 // Only use days within 60 days of the selected date to avoid phantom compounding
 var targetDate=parseISO(dateStr);
-var cutoff=new Date(targetDate); cutoff.setDate(cutoff.getDate()-60);
 var asc=allDays.slice()
-.filter(function(d){var dd=parseISO(d.date);return dd>=cutoff&&dd<targetDate;})
+.filter(function(d){var dd=parseISO(d.date);return dd<targetDate&&(!resetAnchor||dd>=resetAnchor);})
 .sort(function(a,b){return parseISO(a.date)-parseISO(b.date);});
 var runBefore=0;
 for(var i=0;i<asc.length;i++){
