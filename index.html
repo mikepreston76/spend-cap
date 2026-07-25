@@ -203,17 +203,6 @@ cursor:pointer;
 <div class="rem-lbl">Remaining Today</div>
 <div class="rem-amt c-g" id="rem-amt">$0.00</div>
 </div>
-<div class="cap-info">
-<div class="cap-info-lbl">Today's Cap</div>
-<div class="cap-base" id="cap-base"></div>
-<span class="cap-effective" id="cap-static" onclick="startCapEdit()">$0.00</span>
-<div class="cap-hint" id="cap-hint">Tap to edit base</div>
-<div class="cap-edit-row" id="cap-edit-row">
-<div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
-<button class="cap-ok" onclick="confirmCapEdit()">OK</button>
-<button class="cap-x" onclick="cancelCapEdit()">✕</button>
-</div>
-</div>
 </div>
 <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
 <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
@@ -226,6 +215,7 @@ cursor:pointer;
 <thead><tr><th>Category</th><th>Cap</th><th>Spent</th><th>Remaining</th><th>Days Left</th></tr></thead>
 <tbody id="env-dash-body"></tbody>
 </table>
+<div id="env-detail-body"></div>
 </div>
 <div id="receipt-section">
 <div class="receipt-card" style="flex-direction:column">
@@ -267,6 +257,17 @@ cursor:pointer;
 </div>
 <!-- ENVELOPES / SETTINGS -->
 <div class="tab-content" id="tab-envelopes">
+<div class="env-card">
+<div class="cap-info-lbl">Daily Allowance Cap</div>
+<div class="cap-base" id="cap-base"></div>
+<span class="cap-effective" id="cap-static" onclick="startCapEdit()">$0.00</span>
+<div class="cap-hint" id="cap-hint">Tap to edit base</div>
+<div class="cap-edit-row" id="cap-edit-row">
+<div class="cap-edit-inp-wrap"><span class="cap-edit-sym">$</span><input class="cap-edit-inp" type="number" id="cap-edit-inp" min="0.01" step="0.01" inputmode="decimal"></div>
+<button class="cap-ok" onclick="confirmCapEdit()">OK</button>
+<button class="cap-x" onclick="cancelCapEdit()">✕</button>
+</div>
+</div>
 <!-- RUNNING BALANCE — past days only -->
 <div id="running-card">
 <div class="running-inner">
@@ -320,7 +321,8 @@ var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),selectedDate
 var RESET_KEY='pfhq_running_reset',CAP_KEY='pfhq_default_cap';
 var resetAnchor=null,defaultCap=null;
 // --- Envelope budgeting extension state ---
-var categories=[],categoryLogsAll=[],transfersAll=[],editingCategoryId=null;
+var categories=[],categoryLogsAll=[],transfersAll=[],editingCategoryId=null,expandedCategoryId=null;
+var categoriesById={}; // id -> name, includes archived categories (for labeling old logs)
 var DAILY_ALLOWANCE_VALUE='__daily__';
 document.getElementById('date-lbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 try{var _ra=localStorage.getItem(RESET_KEY);resetAnchor=_ra?new Date(_ra):null;}catch(e){}
@@ -390,12 +392,15 @@ api('GET','receipts?order=created_at.asc&select=*'),
 api('GET','settings?select=*'),
 api('GET','categories?active=eq.true&order=created_at.asc&select=*'),
 api('GET','category_logs?select=*'),
-api('GET','transfers?select=*')
+api('GET','transfers?select=*'),
+api('GET','categories?select=id,name') // unfiltered — used only to label archived categories' history
 ]).then(function(results){
 var rows=results[0]||[],settings=results[1]||[];
 categories=results[2]||[];
 categoryLogsAll=results[3]||[];
 transfersAll=results[4]||[];
+categoriesById={};
+(results[5]||[]).forEach(function(c){categoriesById[c.id]=c.name;});
 var capSetting=settings.find(function(s){return s.key==='default_cap';});
 if(capSetting&&parseFloat(capSetting.value)>0){
 defaultCap=parseFloat(capSetting.value);
@@ -612,9 +617,65 @@ html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-i
 html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastReceipt(this)">LOG</button>';
 html+='</div>';
 }
+// Category envelope logs for this day — separate from Daily Allowance
+// receipts above, since they draw against a different cap entirely.
+var catLogsForDay=categoryLogsAll.filter(function(l){return l.date===dateStr;});
+if(catLogsForDay.length>0||categories.length>0){
+html+='<div class="lbl" style="margin-top:16px;margin-bottom:9px">Category Envelopes</div>';
+if(catLogsForDay.length>0){
+html+='<div class="dd-receipts">';
+catLogsForDay.forEach(function(l){
+var name=categoriesById[l.category_id]||'Unknown Category';
+var dt=new Date(l.created_at);
+var time=dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+html+='<div class="dd-receipt"><span class="dd-time">'+esc(name)+' · '+esc(time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(l.amount)+'</span>';
+if(isPast) html+='<button class="dd-del" data-catlog-id="'+l.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastCategoryLog(this)">×</button>';
+html+='</div>';
+});
+html+='</div>';
+}else{
+html+='<div class="dd-empty">No category receipts logged.</div>';
+}
+if(isPast&&categories.length>0){
+html+='<div class="dd-add-row">';
+html+='<select id="dd-cat-select-'+esc(dateStr)+'" class="range-inp" style="flex:0 0 auto;max-width:130px">';
+categories.forEach(function(c){html+='<option value="'+c.id+'">'+esc(c.name)+'</option>';});
+html+='</select>';
+html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-inp" type="number" id="dd-cat-inp-'+esc(dateStr)+'" placeholder="0" min="1" step="1" inputmode="decimal"></div>';
+html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastCategoryLog(this)">LOG</button>';
+html+='</div>';
+}
+}
 html+='</div>';
 dd.innerHTML=html;
 }
+window.addPastCategoryLog=function(btn){
+var dateStr=btn.getAttribute('data-date');
+var sel=document.getElementById('dd-cat-select-'+dateStr);
+var inp=document.getElementById('dd-cat-inp-'+dateStr);
+if(!sel||!inp) return;
+var categoryId=sel.value;
+var amt=parseFloat(inp.value);
+if(!amt||amt<=0){inp.style.borderColor='var(--red)';setTimeout(function(){inp.style.borderColor='';},700);return;}
+api('POST','category_logs',{category_id:categoryId,amount:amt,date:dateStr,note:null}).then(function(rows){
+var row=Array.isArray(rows)?rows[0]:rows;
+categoryLogsAll.push(row);
+renderEnvelopeDashboard();
+renderCalendar();
+renderDayDetail(dateStr);
+}).catch(function(){});
+};
+window.deletePastCategoryLog=function(btn){
+var id=btn.getAttribute('data-catlog-id');
+var dateStr=btn.getAttribute('data-date');
+if(!confirm('Delete this logged receipt?')) return;
+api('DELETE','category_logs?id=eq.'+id).then(function(){
+categoryLogsAll=categoryLogsAll.filter(function(l){return l.id!==id;});
+renderEnvelopeDashboard();
+renderCalendar();
+renderDayDetail(dateStr);
+}).catch(function(){});
+};
 window.addPastReceipt=function(btnOrDate){
 var dateStr=typeof btnOrDate==='string'?btnOrDate:btnOrDate.getAttribute('data-date');
 var inp=document.getElementById('dd-inp-'+dateStr);
@@ -760,15 +821,19 @@ function loadEnvelopeData(){
 return Promise.all([
 api('GET','categories?active=eq.true&order=created_at.asc&select=*'),
 api('GET','category_logs?select=*'),
-api('GET','transfers?select=*')
+api('GET','transfers?select=*'),
+api('GET','categories?select=id,name')
 ]).then(function(results){
 categories=results[0]||[];
 categoryLogsAll=results[1]||[];
 transfersAll=results[2]||[];
+categoriesById={};
+(results[3]||[]).forEach(function(c){categoriesById[c.id]=c.name;});
 renderCategoryDropdowns();
 renderCategorySetupList();
 renderEnvelopeDashboard();
 render(); // Daily Allowance running balance may depend on transfersAll
+if(document.getElementById('tab-calendar').classList.contains('active')) renderCalendar();
 }).catch(function(e){console.error('envelope reload error',e);});
 }
 
@@ -825,15 +890,61 @@ function renderEnvelopeDashboard(){
 var body=document.getElementById('env-dash-body');
 if(!body) return;
 body.innerHTML='';
-if(categories.length===0){body.innerHTML='<tr><td colspan="5" class="dd-empty">No categories yet.</td></tr>';return;}
+if(categories.length===0){body.innerHTML='<tr><td colspan="5" class="dd-empty">No categories yet.</td></tr>';document.getElementById('env-detail-body').innerHTML='';return;}
 categories.forEach(function(cat){
 var st=computeCategoryStatus(cat);
 var tr=document.createElement('tr');
+tr.style.cursor='pointer';
+if(cat.id===expandedCategoryId) tr.style.background='var(--card2)';
 tr.innerHTML='<td>'+esc(cat.name)+'</td><td>'+fmt(st.effectiveCap)+'</td><td>'+fmt(st.spentThisMonth)+'</td>'+
 '<td class="'+(st.overspent?'c-r':'c-g')+'" style="font-weight:bold">'+fmt(st.remaining)+'</td>'+
 '<td>'+st.daysLeftInMonth+'</td>';
+tr.addEventListener('click',function(){
+expandedCategoryId=(expandedCategoryId===cat.id)?null:cat.id;
+renderEnvelopeDashboard();
+});
 body.appendChild(tr);
 });
+renderCategoryDetail();
+}
+
+// Shows the individual logged entries (this month) for whichever
+// category row was last clicked — this is what was missing: the
+// dashboard only showed totals, not where a logged amount actually went.
+function renderCategoryDetail(){
+var wrap=document.getElementById('env-detail-body');
+if(!wrap) return;
+if(!expandedCategoryId){wrap.innerHTML='';return;}
+var cat=categories.find(function(c){return c.id===expandedCategoryId;});
+if(!cat){wrap.innerHTML='';expandedCategoryId=null;return;}
+var todayMonth=monthOf(TODAY);
+var logs=categoryLogsAll
+.filter(function(l){return l.category_id===cat.id&&monthOf(l.date)===todayMonth;})
+.sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
+var html='<div class="lbl" style="margin-top:16px;margin-bottom:9px">'+esc(cat.name)+' — This Month’s Log</div>';
+if(logs.length===0){
+html+='<div class="dd-empty">No receipts logged yet this month.</div>';
+}else{
+html+='<div class="receipt-list">';
+logs.forEach(function(l){
+var dt=new Date(l.created_at);
+var stamp=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+html+='<div class="receipt-item"><span class="ri-time">'+esc(stamp)+'</span><span class="ri-amt" style="flex:1;text-align:right;margin-right:10px">−'+fmt(l.amount)+'</span><button class="ri-del" data-id="'+l.id+'">×</button></div>';
+});
+html+='</div>';
+}
+wrap.innerHTML=html;
+wrap.querySelectorAll('.ri-del').forEach(function(btn){
+btn.addEventListener('click',function(){deleteCategoryLog(this.getAttribute('data-id'));});
+});
+}
+
+function deleteCategoryLog(id){
+if(!confirm('Delete this logged receipt?')) return;
+api('DELETE','category_logs?id=eq.'+id).then(function(){
+categoryLogsAll=categoryLogsAll.filter(function(l){return l.id!==id;});
+renderEnvelopeDashboard();
+}).catch(function(){});
 }
 
 function renderCategorySetupList(){
