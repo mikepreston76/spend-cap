@@ -6,7 +6,7 @@
 <title>Daily Spend Cap — Peak Finance HQ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--border:#333;--gold:#c9a84c;--green:#50c878;--red:#ff6b6b;--amber:#e08c30;--white:#fff;--off:#ddd;--sub:#aaa;--mono:'Courier New',monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+:root{--bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--border:#333;--gold:#c9a84c;--green:#50c878;--red:#ff6b6b;--amber:#e08c30;--white:#fff;--off:#ddd;--sub:#aaa;--mono:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 80px}
 .tab-bar{width:100%;max-width:480px;display:flex;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:50}
 .tab{flex:1;padding:14px 0;font-family:var(--mono);font-size:12px;font-weight:bold;letter-spacing:.12em;color:var(--sub);text-transform:uppercase;text-align:center;cursor:pointer;border:none;background:#0f0f0f;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;-webkit-appearance:none}
@@ -184,7 +184,7 @@ cursor:pointer;
 <div class="tab-bar">
 <button class="tab active" onclick="switchTab('today')">Dashboard</button>
 <button class="tab" onclick="switchTab('calendar')">Calendar</button>
-<button class="tab" onclick="switchTab('envelopes')">Envelopes</button>
+<button class="tab" onclick="switchTab('envelopes')">Settings</button>
 </div>
 <!-- TODAY -->
 <div class="tab-content active" id="tab-today">
@@ -218,19 +218,6 @@ cursor:pointer;
 <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
 <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
 <div class="mtd-lbl" id="mtd-lbl"></div>
-</div>
-</div>
-<!-- RUNNING BALANCE — past days only -->
-<div id="running-card">
-<div class="running-inner">
-<div>
-<div class="rl-lbl">Running Balance</div>
-<div class="rl-val" id="rl-val">+$0.00</div>
-</div>
-<div class="running-right">
-<div class="rl-since" id="rl-since"></div>
-<button class="rl-reset" onclick="resetRunning()">RESET</button>
-</div>
 </div>
 </div>
 <div class="env-card">
@@ -278,8 +265,21 @@ cursor:pointer;
 <div id="range-result"></div>
 </div>
 </div>
-<!-- ENVELOPES -->
+<!-- ENVELOPES / SETTINGS -->
 <div class="tab-content" id="tab-envelopes">
+<!-- RUNNING BALANCE — past days only -->
+<div id="running-card">
+<div class="running-inner">
+<div>
+<div class="rl-lbl">Running Balance</div>
+<div class="rl-val" id="rl-val">+$0.00</div>
+</div>
+<div class="running-right">
+<div class="rl-since" id="rl-since"></div>
+<button class="rl-reset" onclick="resetRunning()">RESET</button>
+</div>
+</div>
+</div>
 <div class="env-card">
 <div class="lbl" id="cat-form-title">Add Category</div>
 <div class="env-form-row">
