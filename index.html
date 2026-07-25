@@ -198,19 +198,18 @@ cursor:pointer;
 <div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
 <div id="gauge-section">
 <div class="gauge-card">
-<div class="gauge-top">
+<div class="gauge-top" style="justify-content:center;text-align:center">
 <div>
-<div class="rem-lbl">Remaining Today</div>
+<div class="rem-lbl">Remaining Allowance</div>
 <div class="rem-amt c-g" id="rem-amt">$0.00</div>
 </div>
 </div>
 <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
 <div class="progress-meta"><span>$0</span><span id="spent-lbl">$0.00 spent</span><span id="cap-end-lbl">$0</span></div>
-<div class="mtd-lbl" id="mtd-lbl"></div>
+<div class="mtd-lbl" id="mtd-lbl" style="text-align:center"></div>
 </div>
 </div>
 <div class="env-card">
-<div class="lbl">Category Envelopes</div>
 <table class="env-table" id="env-dash-table">
 <thead><tr><th>Category</th><th>Cap</th><th>Spent</th><th>Remaining</th><th>Days Left</th></tr></thead>
 <tbody id="env-dash-body"></tbody>
@@ -621,7 +620,7 @@ html+='</div>';
 // receipts above, since they draw against a different cap entirely.
 var catLogsForDay=categoryLogsAll.filter(function(l){return l.date===dateStr;});
 if(catLogsForDay.length>0||categories.length>0){
-html+='<div class="lbl" style="margin-top:16px;margin-bottom:9px">Category Envelopes</div>';
+html+='<div class="lbl" style="margin-top:16px;margin-bottom:9px">Category</div>';
 if(catLogsForDay.length>0){
 html+='<div class="dd-receipts">';
 catLogsForDay.forEach(function(l){
@@ -629,7 +628,7 @@ var name=categoriesById[l.category_id]||'Unknown Category';
 var dt=new Date(l.created_at);
 var time=dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 html+='<div class="dd-receipt"><span class="dd-time">'+esc(name)+' · '+esc(time)+'</span><span class="dd-amt" style="margin-left:auto">−'+fmt(l.amount)+'</span>';
-if(isPast) html+='<button class="dd-del" data-catlog-id="'+l.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastCategoryLog(this)">×</button>';
+html+='<button class="dd-del" data-catlog-id="'+l.id+'" data-date="'+esc(dateStr)+'" onclick="deletePastCategoryLog(this)">×</button>';
 html+='</div>';
 });
 html+='</div>';
