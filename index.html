@@ -152,7 +152,21 @@ input:focus{border-color:var(--gold)}
 .env-link{color:var(--gold);background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:12px;text-decoration:underline;padding:0;margin-right:10px;-webkit-appearance:none}
 .env-link.danger{color:var(--red)}
 #log-category-wrap{margin-bottom:10px}
-#log-category-wrap select{width:100%}
+#log-category-wrap select{
+width:100%;
+font-family:var(--sans);
+font-size:18px;
+font-weight:bold;
+background:var(--gold);
+color:#000;
+border:none;
+border-radius:10px;
+padding:14px 16px;
+outline:none;
+-webkit-appearance:none;
+appearance:none;
+cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -168,7 +182,7 @@ input:focus{border-color:var(--gold)}
 </div>
 </div>
 <div class="tab-bar">
-<button class="tab active" onclick="switchTab('today')">Today</button>
+<button class="tab active" onclick="switchTab('today')">Dashboard</button>
 <button class="tab" onclick="switchTab('calendar')">Calendar</button>
 <button class="tab" onclick="switchTab('envelopes')">Envelopes</button>
 </div>
@@ -218,6 +232,13 @@ input:focus{border-color:var(--gold)}
 <button class="rl-reset" onclick="resetRunning()">RESET</button>
 </div>
 </div>
+</div>
+<div class="env-card">
+<div class="lbl">Category Envelopes</div>
+<table class="env-table" id="env-dash-table">
+<thead><tr><th>Category</th><th>Cap</th><th>Spent</th><th>Remaining</th><th>Days Left</th></tr></thead>
+<tbody id="env-dash-body"></tbody>
+</table>
 </div>
 <div id="receipt-section">
 <div class="receipt-card" style="flex-direction:column">
@@ -271,14 +292,6 @@ input:focus{border-color:var(--gold)}
 <table class="env-table" id="cat-list-table">
 <thead><tr><th>Name</th><th>Cap</th><th>Rollover</th><th></th></tr></thead>
 <tbody id="cat-list-body"></tbody>
-</table>
-</div>
-
-<div class="env-card">
-<div class="lbl">Category Envelopes</div>
-<table class="env-table" id="env-dash-table">
-<thead><tr><th>Category</th><th>Cap</th><th>Spent</th><th>Remaining</th><th>Days Left</th></tr></thead>
-<tbody id="env-dash-body"></tbody>
 </table>
 </div>
 
@@ -367,7 +380,8 @@ document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('acti
 document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
 document.getElementById('tab-'+name).classList.add('active');
 if(name==='calendar') renderCalendar();
-if(name==='envelopes'){renderCategorySetupList();renderEnvelopeDashboard();}
+if(name==='today') renderEnvelopeDashboard();
+if(name==='envelopes') renderCategorySetupList();
 };
 function loadAll(){
 document.getElementById('loading-msg').textContent='Loading data...';
@@ -477,6 +491,7 @@ rs.style.pointerEvents=done?'none':'';
 renderReceipts();
 renderRunning(rb);
 renderMTD();
+renderEnvelopeDashboard();
 }
 function renderMTD(){
 var monthStart=TODAY.slice(0,8)+'01'; // first of current month, ISO
