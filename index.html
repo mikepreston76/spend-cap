@@ -219,15 +219,16 @@ cursor:pointer;
 <div id="receipt-section">
 <div class="receipt-card" style="flex-direction:column">
 <div id="log-category-wrap">
-<select id="log-category"></select>
+<select id="log-category" onchange="updateLogRowState()"></select>
 </div>
-<div style="display:flex;gap:10px;align-items:stretch">
+<div id="log-amount-row" style="display:flex;gap:10px;align-items:stretch">
 <div class="big-amt-wrap">
 <span class="sym" style="font-size:40px;left:16px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;z-index:1;color:#c9a84c">$</span>
 <input class="big-amt-inp" type="number" id="r-amt" placeholder="0" min="0.01" step="0.01" inputmode="decimal">
 </div>
 <button class="log-btn" onclick="addReceipt()">LOG</button>
 </div>
+<div id="log-done-note" class="dd-empty" style="display:none;padding:8px 0 0">Daily Allowance is done for today — category envelopes below still work.</div>
 </div>
 </div>
 <div id="log-section">
@@ -454,6 +455,7 @@ if(hadGaps) allDays.sort(function(a,b){return parseISO(b.date)-parseISO(a.date);
 document.getElementById('loading').classList.add('hidden');
 render();
 renderCategoryDropdowns();
+updateLogRowState();
 renderCategorySetupList();
 renderEnvelopeDashboard();
 try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
@@ -463,6 +465,22 @@ function fmt(n,sign){var abs=String(Math.ceil(Math.abs(n))).replace(/\B(?=(\d{3}
 function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
+var todayDone=false;
+// Only the Daily Allowance amount/LOG row gets dimmed & disabled when
+// the daily cap is hit — the category dropdown, and logging against a
+// category, must keep working regardless (that was the bug: the whole
+// receipt-section, dropdown included, used to get pointer-events:none).
+function updateLogRowState(){
+var sel=document.getElementById('log-category');
+var row=document.getElementById('log-amount-row');
+var note=document.getElementById('log-done-note');
+if(!row||!note) return;
+var isDailySelected=!sel||sel.value===DAILY_ALLOWANCE_VALUE;
+var block=todayDone&&isDailySelected;
+row.style.opacity=block?'0.3':'1';
+row.style.pointerEvents=block?'none':'';
+note.style.display=block?'block':'none';
+}
 function render(){
 var has=todayCap!==null;
 show('cap-setup',!has); show('gauge-section',has); show('receipt-section',has); show('log-section',has);
@@ -489,9 +507,8 @@ var bar=document.getElementById('prog-bar');
 bar.style.width=pct+'%';
 bar.style.background=pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
 show('done-banner',done);
-var rs=document.getElementById('receipt-section');
-rs.style.opacity=done?'0.3':'1';
-rs.style.pointerEvents=done?'none':'';
+todayDone=done;
+updateLogRowState();
 renderReceipts();
 renderRunning(rb);
 renderMTD();
