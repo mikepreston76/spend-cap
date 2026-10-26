@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Daily Spend Cap — Peak Finance HQ</title>
+<title>Daily Spend Cap - Peak Finance HQ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--border:#333;--gold:#c9a84c;--green:#50c878;--red:#ff6b6b;--amber:#e08c30;--white:#fff;--off:#ddd;--sub:#aaa;--mono:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -151,6 +151,7 @@ input:focus{border-color:var(--gold)}
 .env-table tr:last-child td{border-bottom:none}
 .env-link{color:var(--gold);background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:12px;text-decoration:underline;padding:0;margin-right:10px;-webkit-appearance:none}
 .env-link.danger{color:var(--red)}
+.tr-note{font-size:11px;color:var(--sub);margin-top:2px}
 #log-category-wrap{margin-bottom:10px}
 #log-category-wrap select{
 width:100%;
@@ -195,7 +196,7 @@ cursor:pointer;
 <button class="btn" onclick="setCap()">SET CAP</button>
 </div>
 </div>
-<div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT — YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
+<div id="done-banner"><div class="done-icon">🚫</div><div class="done-title">CAP HIT: YOU'RE DONE</div><div class="done-sub">Come back tomorrow. The system works because you do.</div></div>
 <div id="gauge-section">
 <div class="gauge-card">
 <div class="gauge-top" style="justify-content:center;text-align:center">
@@ -228,7 +229,7 @@ cursor:pointer;
 </div>
 <button class="log-btn" onclick="addReceipt()">LOG</button>
 </div>
-<div id="log-done-note" class="dd-empty" style="display:none;padding:8px 0 0">Daily Allowance is done for today — category envelopes below still work.</div>
+<div id="log-done-note" class="dd-empty" style="display:none;padding:8px 0 0">Daily Allowance is done for today. Category envelopes below still work.</div>
 </div>
 </div>
 <div id="log-section">
@@ -268,7 +269,7 @@ cursor:pointer;
 <button class="cap-x" onclick="cancelCapEdit()">✕</button>
 </div>
 </div>
-<!-- RUNNING BALANCE — past days only -->
+<!-- RUNNING BALANCE: past days only -->
 <div id="running-card">
 <div class="running-inner">
 <div>
@@ -307,6 +308,14 @@ cursor:pointer;
 <button class="btn" onclick="submitTransfer()">TRANSFER</button>
 </div>
 <div id="tr-error" style="font-family:var(--mono);font-size:12px;color:var(--red)"></div>
+</div>
+
+<div class="env-card">
+<div class="lbl">Transfer History</div>
+<table class="env-table" id="tr-hist-table">
+<thead><tr><th>Date</th><th>From → To</th><th>Amount</th><th></th></tr></thead>
+<tbody id="tr-hist-body"></tbody>
+</table>
 </div>
 </div>
 <script>
@@ -347,31 +356,37 @@ return rows;
 function saveDefaultCap(v){
 saveSetting('default_cap',v).catch(function(){});
 }
-function getDailyAllowanceTransferNet(){
-// Net effect of all transfers touching Daily Allowance (from/to null),
-// dated on or before today and on/after the running-balance reset
-// anchor (if set) — same window used for the day-by-day running
-// balance below, so a transfer behaves like an extra day's delta.
-var upto=parseISO(TODAY);
-return transfersAll.filter(function(t){
-var d=parseISO(t.date);
-if(d>upto) return false;
-if(resetAnchor&&d<resetAnchor) return false;
-return t.to_category_id===null||t.from_category_id===null;
-}).reduce(function(net,t){
-if(t.to_category_id===null) net+=t.amount;
-if(t.from_category_id===null) net-=t.amount;
-return net;
-},0);
-}
-function getRunningBalance(){
-var pastDays=allDays.filter(function(d){return d.date!==TODAY;});
-if(resetAnchor) pastDays=pastDays.filter(function(d){return parseISO(d.date)>=resetAnchor;});
-var base=pastDays.reduce(function(t,d){
+
+// Single source of truth for the Daily Allowance rollover balance.
+// Used by BOTH the dashboard (dateStr = TODAY) and the calendar day
+// detail (dateStr = any day), so the two screens can never disagree.
+// = sum of (base cap - spent) for every tracked day BEFORE dateStr
+//   (on/after the reset anchor, if set)
+// + net transfers touching Daily Allowance dated on or before dateStr
+//   (on/after the reset anchor, if set)
+function runningBalanceBefore(dateStr){
+var target=parseISO(dateStr);
+var base=allDays.filter(function(d){
+var dd=parseISO(d.date);
+return dd<target&&(!resetAnchor||dd>=resetAnchor);
+}).reduce(function(t,d){
 var s=d.receipts.reduce(function(a,r){return a+r.amount;},0);
 return t+(d.cap-s);
 },0);
-return base+getDailyAllowanceTransferNet();
+var net=transfersAll.filter(function(t){
+var td=parseISO(t.date);
+if(td>target) return false;
+if(resetAnchor&&td<resetAnchor) return false;
+return t.to_category_id===null||t.from_category_id===null;
+}).reduce(function(n,t){
+if(t.to_category_id===null) n+=t.amount;
+if(t.from_category_id===null) n-=t.amount;
+return n;
+},0);
+return base+net;
+}
+function getRunningBalance(){
+return runningBalanceBefore(TODAY);
 }
 function effectiveCap(){
 if(todayCap===null) return 0;
@@ -383,7 +398,7 @@ document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove
 document.getElementById('tab-'+name).classList.add('active');
 if(name==='calendar') renderCalendar();
 if(name==='today') renderEnvelopeDashboard();
-if(name==='envelopes') renderCategorySetupList();
+if(name==='envelopes'){renderCategorySetupList();renderTransferHistory();}
 };
 function loadAll(){
 document.getElementById('loading-msg').textContent='Loading data...';
@@ -393,7 +408,7 @@ api('GET','settings?select=*'),
 api('GET','categories?active=eq.true&order=created_at.asc&select=*'),
 api('GET','category_logs?select=*'),
 api('GET','transfers?select=*'),
-api('GET','categories?select=id,name') // unfiltered — used only to label archived categories' history
+api('GET','categories?select=id,name') // unfiltered, used only to label archived categories' history
 ]).then(function(results){
 var rows=results[0]||[],settings=results[1]||[];
 categories=results[2]||[];
@@ -414,9 +429,9 @@ try{localStorage.setItem(RESET_KEY,resetSetting.value);}catch(e){}
 var byDate={};
 rows.forEach(function(r){
 if(!byDate[r.date]) byDate[r.date]={date:r.date,cap:0,receipts:[]};
-// Always keep the highest cap value seen — immune to row ordering
+// Always keep the highest cap value seen, immune to row ordering
 if(r.cap>byDate[r.date].cap) byDate[r.date].cap=r.cap;
-// Only push real spend rows — never cap markers
+// Only push real spend rows, never cap markers
 if(r.amount>0&&r.description!=='__cap__') byDate[r.date].receipts.push({id:r.id,amount:r.amount,time:new Date(r.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
 });
 allDays=Object.values(byDate).sort(function(a,b){return parseISO(b.date)-parseISO(a.date);});
@@ -428,13 +443,15 @@ todayCap=defaultCap;
 allDays.unshift({date:TODAY,cap:defaultCap,receipts:[]});
 api('POST','receipts',{date:TODAY,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
 }
-// Gap-fill: credit full cap for missing days since the MOST RECENT tracked day
-// Only look back 60 days max to avoid runaway compounding
-if(defaultCap!==null&&allDays.length>0){
+// Gap-fill: credit full cap for every missing day between the most recent
+// tracked day BEFORE today and today. (Fix: this used to start from
+// allDays[0], which is today once today's row is created, so skipped days
+// were never filled.) Only look back 60 days max to avoid runaway compounding.
+var priorDays=allDays.filter(function(d){return d.date<TODAY;}); // newest first, excludes today
+if(defaultCap!==null&&priorDays.length>0){
 var todayD=parseISO(TODAY);
 var cutoff=new Date(todayD); cutoff.setDate(cutoff.getDate()-60);
-// Find most recent tracked day as start point (not oldest)
-var recentTracked=parseISO(allDays[0].date); // newest first
+var recentTracked=parseISO(priorDays[0].date);
 var gapStart=recentTracked>cutoff?recentTracked:cutoff;
 var cursor=new Date(gapStart);
 cursor.setDate(cursor.getDate()+1);
@@ -442,7 +459,7 @@ var hadGaps=false;
 while(cursor<todayD){
 var ds=isoDate(cursor);
 if(!byDate[ds]){
-// Only add to local allDays — write to DB only if not already there
+// Add locally, and write a cap marker row to the DB so the day persists
 allDays.push({date:ds,cap:defaultCap,receipts:[]});
 byDate[ds]={date:ds,cap:defaultCap,receipts:[]};
 api('POST','receipts',{date:ds,cap:defaultCap,description:'__cap__',amount:0}).catch(function(){});
@@ -457,19 +474,20 @@ render();
 renderCategoryDropdowns();
 updateLogRowState();
 renderCategorySetupList();
+renderTransferHistory();
 renderEnvelopeDashboard();
 try{var n=document.getElementById('cap-setup-note');if(n&&defaultCap)n.textContent='(current: '+fmt(defaultCap)+')';}catch(e){}
 }).catch(function(e){document.getElementById('loading-msg').textContent='Connection error';console.error(e);});
 }
 function fmt(n,sign){var abs=String(Math.ceil(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(sign)return(n>=0?'+':'-')+'$'+abs;return'$'+abs;}
+function fmtExact(n){return '$'+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function show(id,v){document.getElementById(id).style.display=v?'block':'none';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function totalSpent(){return todayReceipts.reduce(function(t,r){return t+r.amount;},0);}
 var todayDone=false;
 // Only the Daily Allowance amount/LOG row gets dimmed & disabled when
-// the daily cap is hit — the category dropdown, and logging against a
-// category, must keep working regardless (that was the bug: the whole
-// receipt-section, dropdown included, used to get pointer-events:none).
+// the daily cap is hit. The category dropdown, and logging against a
+// category, must keep working regardless.
 function updateLogRowState(){
 var sel=document.getElementById('log-category');
 var row=document.getElementById('log-amount-row');
@@ -563,15 +581,12 @@ var grid=document.getElementById('cal-grid'); grid.innerHTML='';
 var first=new Date(calYear,calMonth,1).getDay();
 var days=new Date(calYear,calMonth+1,0).getDate();
 var dataMap={};
-// Build running balance per day (cumulative from oldest to newest)
+// Per-day pip data: delta = base cap minus spent
 var asc=allDays.slice().sort(function(a,b){return parseISO(a.date)-parseISO(b.date);});
-var runningBal=0;
 asc.forEach(function(d){
 var s=d.receipts.reduce(function(t,r){return t+r.amount;},0);
-var effCap=Math.max(d.cap+runningBal,0);
 var delta=d.cap-s;
-dataMap[d.date]={cap:d.cap,effCap:effCap,spent:s,delta:delta,runningBefore:runningBal,receipts:d.receipts};
-runningBal+=delta;
+dataMap[d.date]={cap:d.cap,spent:s,delta:delta,receipts:d.receipts};
 });
 for(var i=0;i<first;i++){var el=document.createElement('div');el.className='cal-day empty';el.innerHTML='<span class="cal-day-num"></span>';grid.appendChild(el);}
 for(var day=1;day<=days;day++){
@@ -591,18 +606,9 @@ function renderDayDetail(dateStr){
 var dd=document.getElementById('day-detail');
 var dayData=allDays.find(function(x){return x.date===dateStr;});
 if(!dayData){dd.innerHTML='<div class="day-detail"><div class="dd-empty">No data for this day.</div></div>';return;}
-// Recompute effective cap using running balance before this day
-// Only use days within 60 days of the selected date to avoid phantom compounding
-var targetDate=parseISO(dateStr);
-var asc=allDays.slice()
-.filter(function(d){var dd=parseISO(d.date);return dd<targetDate&&(!resetAnchor||dd>=resetAnchor);})
-.sort(function(a,b){return parseISO(a.date)-parseISO(b.date);});
-var runBefore=0;
-for(var i=0;i<asc.length;i++){
-var ps=asc[i].receipts.reduce(function(t,r){return t+r.amount;},0);
-// Delta = base cap - spent (not effective cap - spent, to avoid exponential compounding)
-runBefore+=asc[i].cap-ps;
-}
+// Uses the same shared function as the dashboard, so transfers are
+// included and the two screens always agree.
+var runBefore=runningBalanceBefore(dateStr);
 var effCap=Math.max(dayData.cap+runBefore,0);
 var spent=dayData.receipts.reduce(function(t,r){return t+r.amount;},0);
 var delta=effCap-spent;
@@ -615,8 +621,6 @@ html+='<div class="dd-header"><span class="dd-date">'+dateLabel+'</span><span cl
 html+='<div class="dd-bar-track"><div class="dd-bar-fill" style="width:'+Math.min(pct,100)+'%;background:'+bc+'"></div></div>';
 if(Math.abs(runBefore)>0.5){
 html+='<div class="dd-effective">'+fmt(dayData.cap)+' base '+fmt(runBefore,true)+' balance = '+fmt(effCap)+'</div>';
-} else {
-html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
 }
 html+='<div class="dd-meta">'+fmt(spent)+' spent of '+fmt(effCap)+' cap</div>';
 html+='<div class="dd-receipts">';
@@ -633,7 +637,7 @@ html+='<div class="dd-amt-wrap"><span class="sym">$</span><input class="dd-amt-i
 html+='<button class="dd-log-btn" data-date="'+esc(dateStr)+'" onclick="addPastReceipt(this)">LOG</button>';
 html+='</div>';
 }
-// Category envelope logs for this day — separate from Daily Allowance
+// Category envelope logs for this day, separate from Daily Allowance
 // receipts above, since they draw against a different cap entirely.
 var catLogsForDay=categoryLogsAll.filter(function(l){return l.date===dateStr;});
 if(catLogsForDay.length>0||categories.length>0){
@@ -822,8 +826,14 @@ function shake(id){var el=document.getElementById(id);el.style.borderColor='var(
 document.getElementById('cap-input').addEventListener('keydown',function(e){if(e.key==='Enter')setCap();});
 document.getElementById('r-amt').addEventListener('keydown',function(e){if(e.key==='Enter')addReceipt();});
 
+// If the app was left open overnight (home-screen app), TODAY goes stale.
+// Reload when the app becomes visible on a new calendar day.
+document.addEventListener('visibilitychange',function(){
+if(!document.hidden&&isoDate(new Date())!==TODAY) location.reload();
+});
+
 // ============================================================
-// Envelope budgeting extension — categories, category_logs, transfers
+// Envelope budgeting extension: categories, category_logs, transfers
 // ============================================================
 
 function monthOf(dateStr){return dateStr.slice(0,7);} // 'YYYY-MM' from a YYYY-MM-DD string
@@ -847,8 +857,9 @@ categoriesById={};
 (results[3]||[]).forEach(function(c){categoriesById[c.id]=c.name;});
 renderCategoryDropdowns();
 renderCategorySetupList();
+renderTransferHistory();
 renderEnvelopeDashboard();
-render(); // Daily Allowance running balance may depend on transfersAll
+render(); // Daily Allowance running balance depends on transfersAll
 if(document.getElementById('tab-calendar').classList.contains('active')) renderCalendar();
 }).catch(function(e){console.error('envelope reload error',e);});
 }
@@ -925,8 +936,7 @@ renderCategoryDetail();
 }
 
 // Shows the individual logged entries (this month) for whichever
-// category row was last clicked — this is what was missing: the
-// dashboard only showed totals, not where a logged amount actually went.
+// category row was last clicked.
 function renderCategoryDetail(){
 var wrap=document.getElementById('env-detail-body');
 if(!wrap) return;
@@ -937,7 +947,7 @@ var todayMonth=monthOf(TODAY);
 var logs=categoryLogsAll
 .filter(function(l){return l.category_id===cat.id&&monthOf(l.date)===todayMonth;})
 .sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
-var html='<div class="lbl" style="margin-top:16px;margin-bottom:9px">'+esc(cat.name)+' — This Month’s Log</div>';
+var html='<div class="lbl" style="margin-top:16px;margin-bottom:9px">'+esc(cat.name)+': This Month’s Log</div>';
 if(logs.length===0){
 html+='<div class="dd-empty">No receipts logged yet this month.</div>';
 }else{
@@ -1060,6 +1070,46 @@ document.getElementById('tr-note').value='';
 loadEnvelopeData();
 }).catch(function(e){errEl.textContent='Transfer failed.';console.error(e);});
 };
+
+// ---- Transfer History ----
+function transferLabel(id){
+if(id===null||id===undefined) return 'Daily Allowance';
+return categoriesById[id]||'Unknown Category';
+}
+
+function renderTransferHistory(){
+var body=document.getElementById('tr-hist-body');
+if(!body) return;
+body.innerHTML='';
+if(!transfersAll||transfersAll.length===0){
+body.innerHTML='<tr><td colspan="4" class="dd-empty">No transfers yet.</td></tr>';
+return;
+}
+var sorted=transfersAll.slice().sort(function(a,b){
+if(a.date!==b.date) return a.date<b.date?1:-1;
+return new Date(b.created_at)-new Date(a.created_at);
+});
+sorted.forEach(function(t){
+var tr=document.createElement('tr');
+var dateLabel=parseISO(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+var noteHtml=t.note?'<div class="tr-note">'+esc(t.note)+'</div>':'';
+tr.innerHTML='<td>'+esc(dateLabel)+'</td>'+
+'<td>'+esc(transferLabel(t.from_category_id))+' → '+esc(transferLabel(t.to_category_id))+noteHtml+'</td>'+
+'<td style="font-weight:bold">'+fmtExact(t.amount)+'</td>'+
+'<td><button class="env-link danger" data-id="'+t.id+'">Delete</button></td>';
+body.appendChild(tr);
+});
+body.querySelectorAll('.env-link.danger').forEach(function(btn){
+btn.addEventListener('click',function(){deleteTransfer(this.getAttribute('data-id'));});
+});
+}
+
+function deleteTransfer(id){
+if(!confirm('Delete this transfer? Balances will be recalculated without it.')) return;
+api('DELETE','transfers?id=eq.'+id).then(function(){
+loadEnvelopeData();
+}).catch(function(e){console.error('delete transfer failed',e);});
+}
 
 loadAll();
 </script>
